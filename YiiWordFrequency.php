@@ -264,6 +264,6 @@ class YiiWordFrequency extends CComponent
 	/**
 	 */	
 	public function run() {
-		$this->generateTagArray(); //new from APCTagCloud
+		$this->generateTagArray(); 
 	}
 }
