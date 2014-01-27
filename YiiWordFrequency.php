@@ -136,10 +136,12 @@ class YiiWordFrequency extends CComponent
      */
 	 protected $extensionAssetUrl;
 
+	 public $initTestFlag = false;
 	/**
 	 * 
 	 */	
 	public function init()	{
+		$this->initTestFlag = true;
 	}
 
 	/**
