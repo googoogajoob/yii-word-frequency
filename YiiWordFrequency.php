@@ -65,28 +65,35 @@
  *				'sortTagList' => 0,
  *		)
  *	); * 
+ * 
  */
 
 class YiiWordFrequency extends CComponent
 {
-    /**
-     * 	@var unique array of words/tags
-     */
-    protected $internalTagList = array();
+
+	/**
+    * 	@var unique array of tags and thier frequency count as key-value pair. "tag" => FrequencyCount
+    */
+	public $tagFrequencyList = array();
+
+	/**
+    * 	@var array of individual tags
+    */
+	protected $internalTagList = array();
     
-    /**
-     * 	@var string delimiter used for converting(with the explode function) strings to words/tags 
-     */
-    public $explosionDelimiter = ' ';
+	/**
+    * 	@var string delimiter used for converting(with the explode function) strings to tags 
+    */
+	public $explosionDelimiter = ' ';
 	 
-    /**
-     *	@var array of values/arrays containing words/tags to be prevented from being listed in the tag cloud
-     *	The multidimensional array allows one to maintain separate blacklists and combine them for used
-     *	in screening tags from the cloud. For instance blacklists could be maintained for words from
-     *	different languages, different technical fields etc. The array depth can be arbitrarily deep as it is 
-     *	processed internally with array_walk_recursive to retrieve all values present.
-     */
-    public $blackList = array();
+	/**
+    *	@var array of values/arrays containing words/tags to be prevented from being listed in the tag cloud
+    *	The multidimensional array allows one to maintain separate blacklists and combine them for used
+    *	in screening tags from the cloud. For instance blacklists could be maintained for words from
+    *	different languages, different technical fields etc. The array depth can be arbitrarily deep as it is 
+    *	processed internally with array_walk_recursive to retrieve all values present.
+    */
+	public $blackList = array();
     
     /**
      * @var array of filenames containing blacklist sets
@@ -102,20 +109,16 @@ class YiiWordFrequency extends CComponent
     public $substitutionList = array();
     
     /**
-     * @var string, contains a string which will be parsed and each individual word will be added to the list
+     * @var a one-dimensional array containing text sources
+	  * Each array element ultimately refers to a text string which will be parsed into the frequency list
+	  * The elements of this array can be one of the three following types:
+	  * 1) a text string 
+	  * 2) an array containing text strings or further arrays containing text strings (i.e. an array tree of strings)
+	  * 3) an active record query result (like that returned by find()) accompanied by a list of active record
+	  * 	attributes which should be parsed
      */
-    public $stringSource = '';
+    public $sourceList = array();
 	 
-    /**
-     * @var array, contains an array of arrays, which contain strings of text. Each string will be parsed and each individual word will be added to the list
-     */
-    public $arraySourceList = array();
-    
-    /**
-     * @var array, contains an array of arrays which describe Active Record Queries and field list for active records, each string from the resulting queries will be parsed for individual words which will be added to the list
-     */
-    public $activeRecordSourceList = array();
-    
     /**
      * @var integer, negative = force lowercase, 0 = no changes made to case, positive = force uppercase
      */
@@ -124,24 +127,23 @@ class YiiWordFrequency extends CComponent
     /**
      * @var boolean, true remove numeric strings (such as dates, times etc., only makes sense if punctuation is removed)
      */
-    public $removeNumeric = false; 
-	 
+	public $removeNumeric = false; 
+	
     /**
      * @var integer, -1 = sort alphabetical zA -> aA, 0 = natural unchanged order,  sort alphabetical aA -> zZ
      */
-    public $sortTagList = 0; 
+	public $sortTagList = 0; 
 	 
     /**
      * @var string the URL for this extensions assets directory
      */
-	 protected $extensionAssetUrl;
-
-	 public $initTestFlag = false;
+	protected $extensionAssetUrl;
+	
 	/**
 	 * 
 	 */	
-	public function init()	{
-		$this->initTestFlag = true;
+	function __construct()	{
+		$this->extensionAssetUrl = dirname(__FILE__) . DIRECTORY_SEPARATOR . 'assets';
 	}
 
 	/**
@@ -202,9 +204,15 @@ class YiiWordFrequency extends CComponent
 	 * Calls all functions to import word/tags from all import sources: string, array list, avtive records
 	 */
 	protected function accumulateTagsfromSources() {
-		$this->addStringToTagList($this->stringSource);
-		$this->accumulateTagsfromArrays($this->arraySourceList);
-		$this->accumulateTagsfromActiveRecords();
+		foreach ($this->sourceList as $v) {
+			if (is_string($v)) {
+				$this->addStringToTagList($v);
+			} elseif (is_array($v)) {
+				$this->accumulateTagsfromArrays($v);
+			//} elseif() {
+			//	$this->accumulateTagsfromActiveRecords()
+			}
+		}
 	}
 
 	/**
@@ -237,35 +245,33 @@ class YiiWordFrequency extends CComponent
 	}
     
 	/**
-	 * Performs all functions necessary to import word/tags from all import sources as well as perform
+	 * Performs all functions necessary to import tags from all import sources as well as perform
 	 * all subsequent modifications
-	 * The result is that the array $this->arrTags is created which is then used to display the tag cloud
+	 * The result is that the array $this->frequencyList is created which is then used to display the tag cloud
 	 * @note new in APCTagCloud
 	 * @toDo Locale
 	 */
-	public function generateTagArray() {
+	public function generateTagList() {
 		$this->accumulateTagsFromSources(); //accumulate individual tags (multiple occurances allowed) from the various sources
 		$this->internalTagList = $this->removeBlackListItems($this->internalTagList);
 		if ($this->removeNumeric) {
 			$this->internalTagList = $this->removeNumericItems($this->internalTagList);
 		}
-		$wordCount = array_count_values($this->internalTagList); //count the occurances of each word/tag and create a unique array with count total
+		//count the occurances of each tag and create a unique array with count total
+		//$wordCount = array_count_values($this->internalTagList);
+		$this->tagFrequencyList = array_count_values($this->internalTagList);
+
 		//translate wordcount format to the format needed for displaying the tags
-		foreach($wordCount as $k => $v) {
-			$this->arrTags[$k] = array('weight' => $v);
-		}
+		//foreach($wordCount as $k => $v) {
+		//	$this->tagFrequencyList[$k] = array('weight' => $v);
+		//}
+		
 		// sort the result (if necessary)
 		setlocale(LC_COLLATE, 'de_DE@euro', 'de_DE', 'de');
 		if ($this->sortTagList > 0) {
-			ksort($this->arrTags, SORT_LOCALE_STRING);
+			ksort($this->tagFrequencyList, SORT_LOCALE_STRING);
 		} elseif ($this->sortTagList < 0) {
-			krsort($this->arrTags);
+			krsort($this->tagFrequencyList);
 		}
-	}
-	
-	/**
-	 */	
-	public function run() {
-		$this->generateTagArray(); 
 	}
 }
