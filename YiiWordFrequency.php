@@ -72,71 +72,71 @@ class YiiWordFrequency extends CComponent
 {
 
 	/**
-    * 	@var unique array of tags and thier frequency count as key-value pair. "tag" => FrequencyCount
-    */
+	* 	@var unique array of tags and thier frequency count as key-value pair. "tag" => FrequencyCount
+	*/
 	public $tagFrequencyList = array();
 
 	/**
-    * 	@var array of individual tags
-    */
+	* 	@var array of individual tags
+	*/
 	protected $internalTagList = array();
-    
+		
 	/**
-    * 	@var string delimiter used for converting(with the explode function) strings to tags 
-    */
+	* 	@var string delimiter used for converting(with the explode function) strings to tags 
+	*/
 	public $explosionDelimiter = ' ';
 	 
 	/**
-    *	@var array of values/arrays containing words/tags to be prevented from being listed in the tag cloud
-    *	The multidimensional array allows one to maintain separate blacklists and combine them for used
-    *	in screening tags from the cloud. For instance blacklists could be maintained for words from
-    *	different languages, different technical fields etc. The array depth can be arbitrarily deep as it is 
-    *	processed internally with array_walk_recursive to retrieve all values present.
-    */
+	*	@var array of values/arrays containing words/tags to be prevented from being listed in the tag cloud
+	*	The multidimensional array allows one to maintain separate blacklists and combine them for used
+	*	in screening tags from the cloud. For instance blacklists could be maintained for words from
+	*	different languages, different technical fields etc. The array depth can be arbitrarily deep as it is 
+	*	processed internally with array_walk_recursive to retrieve all values present.
+	*/
 	public $blackList = array();
-    
-    /**
-     * @var array of filenames containing blacklist sets
-     * see @link $blackList for explanation of blacklists
-     * the files should contain a one-dimensional list of blacklist terms (i.e. one word per line)
-     * the files should be located in the assets directory of this extension
-     */
-    public $blackListFile = array();
-    
-    /**
-     * @var array of key value search replace strings. Useful for eliminating punction marks from text
-     */
-    public $substitutionList = array();
-    
-    /**
-     * @var a one-dimensional array containing text sources
-	  * Each array element ultimately refers to a text string which will be parsed into the frequency list
-	  * The elements of this array can be one of the three following types:
-	  * 1) a text string 
-	  * 2) an array containing text strings or further arrays containing text strings (i.e. an array tree of strings)
-	  * 3) an active record query result (like that returned by find()) accompanied by a list of active record
-	  * 	attributes which should be parsed
-     */
-    public $sourceList = array();
-	 
-    /**
-     * @var integer, negative = force lowercase, 0 = no changes made to case, positive = force uppercase
-     */
-    public $forceCase = 0; 
-	 
-    /**
-     * @var boolean, true remove numeric strings (such as dates, times etc., only makes sense if punctuation is removed)
-     */
+
+	/**
+	* @var array of filenames containing blacklist sets
+	* see @link $blackList for explanation of blacklists
+	* the files should contain a one-dimensional list of blacklist terms (i.e. one word per line)
+	* the files should be located in the assets directory of this extension
+	*/
+	public $blackListFile = array();
+
+	/**
+	* @var array of key value search replace strings. Useful for eliminating punction marks from text
+	*/
+	public $substitutionList = array();
+
+	/**
+	* @var a one-dimensional array containing text sources
+	* Each array element ultimately refers to a text string which will be parsed into the frequency list
+	* The elements of this array can be one of the three following types:
+	* 1) a text string 
+	* 2) an array containing text strings or further arrays containing text strings (i.e. an array tree of strings)
+	* 3) an active record query result (like that returned by find()) accompanied by a list of active record
+	* 	attributes which should be parsed
+	*/
+	public $sourceList = array();
+	
+	/**
+	* @var integer, negative = force lowercase, 0 = no changes made to case, positive = force uppercase
+	*/
+	public $forceCase = 0; 
+	
+	/**
+	* @var boolean, true remove numeric strings (such as dates, times etc., only makes sense if punctuation is removed)
+	*/
 	public $removeNumeric = false; 
 	
-    /**
-     * @var integer, -1 = sort alphabetical zA -> aA, 0 = natural unchanged order,  sort alphabetical aA -> zZ
-     */
+	/**
+	* @var integer, -1 = sort alphabetical zA -> aA, 0 = natural unchanged order,  sort alphabetical aA -> zZ
+	*/
 	public $sortTagList = 0; 
 	 
-    /**
-     * @var string the URL for this extensions assets directory
-     */
+	/**
+	* @var string the URL for this extensions assets directory
+	*/
 	protected $extensionAssetUrl;
 	
 	/**
@@ -171,31 +171,27 @@ class YiiWordFrequency extends CComponent
 	}
 
 	/**
-	 * Adds words from an array contining strings into the class list of words/tags ($this->internalTagList) which is an array of individual words
-	 * the array can have several levels and any tree structure. It is processed recursively. The strings contained
-	 * in the array must not be individual words they can be strings with several words.
-	 * @param array $arraySource list of words to be added as tags to $this->internalTagList
-	 */
+	* Adds words from an array contining strings into the class list of words/tags ($this->internalTagList) which is an array of individual words
+	* the array can have several levels and any tree structure. It is processed recursively. The strings contained
+	* in the array must not be individual words they can be strings with several words.
+	* @param array $arraySource list of words to be added as tags to $this->internalTagList
+	*/
 	protected function accumulateTagsfromArrays($arraySource) {
 		array_walk_recursive($arraySource, array($this, "addStringToTagList"));
 	}
-	
+
 	/**
 	 * Adds words from a list of Active Records into the class list of words/tags ($this->internalTagList) which is an array of individual words
 	 * $this->activeRecordSourceList is an array contining a list of arrays which have the two keys:
 	 *		model: is the active record (e.g. the value returned by the findAll() function) 
 	 *		attribute: another array with a list of attribute names from the active record, whose text values should be imported
 	 */
-	protected function accumulateTagsfromActiveRecords() {
-		foreach ($this->activeRecordSourceList as $k => $v) {
-			if (is_array($v['model'])) {
-				foreach ($v['model'] as $ar) {
-					$tempAttr=$ar->getAttributes($v['attribute']);
-					$this->accumulateTagsFromArrays($tempAttr);
-				}
-			} else {
-				$tempAttr=$v['model']->getAttributes($v['attribute']);
-				$this->accumulateTagsFromArrays($tempAttr);
+	protected function accumulateTagsfromActiveRecords($arModel, $arCriteria) {
+		$rows = $arModel->findAll($arCriteria);
+		foreach ($rows as $rowk => $rowv) {
+			$singleRow = $rowv->getAttributes(null);
+			foreach ($singleRow as $k => $v) {
+				$this->addStringToTagList($v);
 			}
 		}
 	}
@@ -208,9 +204,13 @@ class YiiWordFrequency extends CComponent
 			if (is_string($v)) {
 				$this->addStringToTagList($v);
 			} elseif (is_array($v)) {
-				$this->accumulateTagsfromArrays($v);
-			//} elseif() {
-			//	$this->accumulateTagsfromActiveRecords()
+				if (is_array($v[0])) {
+					$this->accumulateTagsfromArrays($v);
+				} elseif (is_object($v[0])) {
+					$this->accumulateTagsfromActiveRecords($v[0], $v[1]);
+				} else {
+					throw new CException(Yii::t('yii', 'Invalid string source in class {class}.', array('{class}'=>__CLASS__)));
+				}
 			}
 		}
 	}
@@ -232,7 +232,7 @@ class YiiWordFrequency extends CComponent
 		//remove blacklisted words
 		return array_udiff($inputList, $compositeBlacklist, 'strcasecmp');
 	}
-    
+
 	/**
 	 * removes all items from $inputList which are purely numeric
 	 * the comparison is case insensitive
@@ -243,7 +243,7 @@ class YiiWordFrequency extends CComponent
 	protected function removeNumericItems($inputList) {
 		return array_filter($inputList, function($arg) { return intval($arg) == 0; });
 	}
-    
+
 	/**
 	 * Performs all functions necessary to import tags from all import sources as well as perform
 	 * all subsequent modifications
