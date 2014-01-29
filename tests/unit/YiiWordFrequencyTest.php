@@ -3,9 +3,12 @@
 //class YiiWordFrequencyTest extends CTestCase {
 class YiiWordFrequencyTest extends CDbTestCase {
 	
-	// DB Fixtures
+	/** DB Fixtures
+	 * leave defined but empty to prevent the setUp method from reinitializing the tables before each test
+	 * the fixture file init.php now initializes the tables once at the beginning of all tests
+	 */
 	public $fixtures = array(
-		'testdata' => 'Testdata',
+		//'testdata' => 'Testdata', 
 	);
 	
 	// Static Class Fixtures
