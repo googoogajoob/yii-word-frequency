@@ -35,17 +35,15 @@ class YiiWordFrequencyTest extends CDbTestCase {
 		array('this' => 2, 'is' => 2, 'a' => 2, 'test' => 2, 'string.' => 1, 'string' => 1, 'second'=> 1,),
 		// 6 - normal count UPPERCASE
 		array('THIS' => 2, 'IS' => 2, 'A' => 2, 'TEST' => 2, 'STRING.' => 1, 'STRING' => 1, 'SECOND'=> 1,),
+		// 7 - normal count - blacklist items removed, nocase
+		array('a' => 2, 'test' => 2, 'string.' => 1, 'string' => 1, 'second'=> 1,),
+		// 8 - normal count - blacklist items removed, nocase
+		array('This' => 2, 'a' => 2, 'test' => 2, 'string.' => 1, 'string' => 1, 'second'=> 1,),
 	);
 	
 	public function setUp() {
 		parent::setUp();
-		$this->ywf = Yii::createComponent(array(
-			'class' => 'YiiWordFrequency',
-//	public $blackList = array();
-//	public $blackListFile = array();
-//	public $substitutionList = array();
-			)
-		);
+		$this->ywf = Yii::createComponent(array('class' => 'YiiWordFrequency'));
 	}
 
 	public function testStringInput() {
@@ -115,6 +113,18 @@ class YiiWordFrequencyTest extends CDbTestCase {
 		$this->assertEquals($this->outputFixture[4], $this->ywf->tagFrequencyList);
 	}
 
+	public function testAllAddMethods() {
+		$model = new Testdata;	
+		$criteria=new CDbCriteria();
+		$criteria->addInCondition('id',array(1)); 
+		$criteria->select = "col1";
+		$this->ywf->addSource($this->inputFixture[0]);
+		$this->ywf->addSource($this->inputFixture[1]);
+		$this->ywf->addDbSource($model, $criteria);
+		$this->ywf->generateTagList();
+		$this->assertEquals($this->outputFixture[4], $this->ywf->tagFrequencyList);
+	}
+
 	public function testSortingAsc() {
 		$this->ywf->sourceList = array(
 			$this->inputFixture[0],
@@ -163,11 +173,22 @@ class YiiWordFrequencyTest extends CDbTestCase {
 		$this->ywf->generateTagList();
 		$this->assertEquals($this->outputFixture[0], $this->ywf->tagFrequencyList);
 	}
-/*
-	public function testBlackList() {
-		$this->assertTrue(false);
+
+	public function testBlacklist() {
+		$this->ywf->sourceList = array($this->inputFixture[0]);
+		$this->ywf->blacklist = array('this', 'is');
+		$this->ywf->generateTagList();
+		$this->assertEquals($this->outputFixture[7], $this->ywf->tagFrequencyList);
 	}
 
+	public function testBlackListCaseSensitive() {
+		$this->ywf->sourceList = array($this->inputFixture[0]);
+		$this->ywf->blacklist = array('this', 'is');
+		$this->ywf->blacklistIgnoreCase = false;
+		$this->ywf->generateTagList();
+		$this->assertEquals($this->outputFixture[8], $this->ywf->tagFrequencyList);
+	}
+/*
 	public function testBlackListFile() {
 		$this->assertTrue(false);
 	}
@@ -185,6 +206,30 @@ class YiiWordFrequencyTest extends CDbTestCase {
 	}
 
 	public function testWhiteListRegexp() {
+		$this->assertTrue(false);
+	}
+	
+	public function testReplacementList() {
+		$this->assertTrue(false);
+	}
+
+	public function testReplacementFile() {
+		$this->assertTrue(false);
+	}
+
+	public function testReplacementRegexp() {
+		$this->assertTrue(false);
+	}
+
+	public function testMethodChaining() {
+		$this->assertTrue(false);
+	}
+
+	public function testInitializationAtCreate() {
+		// Need to delete the ywf object and create a new one with all initializaiton in the create config array
+	}
+	
+	public function testComprehensive() {
 		$this->assertTrue(false);
 	}
 */
