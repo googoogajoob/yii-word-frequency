@@ -39,6 +39,30 @@ class YiiWordFrequencyTest extends CDbTestCase {
 		array('a' => 2, 'test' => 2, 'string.' => 1, 'string' => 1, 'second'=> 1,),
 		// 8 - normal count - blacklist items removed, nocase
 		array('This' => 2, 'a' => 2, 'test' => 2, 'string.' => 1, 'string' => 1, 'second'=> 1,),
+		// 9 - normal count - blacklist items from "blacklist_en" removed, nocase
+		array('test' => 2, 'string.' => 1, 'string' => 1, 'second'=> 1,),
+		// 10 - normal count - blacklist from "blacklist_en" removed case sensitive
+		array('This' => 2, 'test' => 2, 'string.' => 1, 'string' => 1, 'second'=> 1,),
+		// 11 - regular expression blacklist /^[Tt]/ and /^[Ss]/
+		array('is' => 2, 'a' => 2),
+		// 12 - regular expression blacklist /^[Tt]/ and /^[Ss]/  and /s$/
+		array('a' => 2),
+		// 13 - whitelist
+		array('This' => 2, 'is' => 2),
+		// 14 - whitelist, case sensitive
+		array('is' => 2),
+		// 15 - whitelist, regexp
+		array('This' => 2, 'test' => 2, 'string.' => 1, 'string' => 1, 'second'=> 1,),
+		// 16 - whitelist, regexp file
+		array('This' => 2, 'is' => 2, 'test' => 2, 'string.' => 1, 'string' => 1, 'second'=> 1,),
+		// 17 - whitelist, regexp 
+		array('This' => 2, 'is' => 2, 'test' => 2),
+		// 18 - substitution (. => X)
+		array('This' => 2, 'is' => 2, 'a' => 2, 'test' => 2, 'stringX' => 1, 'string' => 1, 'second'=> 1,),
+		// 19 - substitution from file
+		array('This' => 2, 'is' => 2, 'a' => 2, 'test' => 2, 'string' => 2, 'second'=> 1,),
+		// 20 - substitution from file, case insensitive
+		array('XXXhis' => 2, 'is' => 2, 'a' => 2, 'XXXesXXX' => 2, 'sXXXring' => 2, 'second'=> 1,),
 	);
 	
 	public function setUp() {
@@ -166,7 +190,6 @@ class YiiWordFrequencyTest extends CDbTestCase {
 		$this->assertEquals($this->outputFixture[6], $this->ywf->tagFrequencyList);
 	}
 
-
 	public function testRemoveNumeric() {
 		$this->ywf->sourceList = array($this->inputFixture[3]);
 		$this->ywf->removeNumeric = true;
@@ -184,40 +207,122 @@ class YiiWordFrequencyTest extends CDbTestCase {
 	public function testBlackListCaseSensitive() {
 		$this->ywf->sourceList = array($this->inputFixture[0]);
 		$this->ywf->blacklist = array('this', 'is');
-		$this->ywf->blacklistIgnoreCase = false;
+		$this->ywf->blacklistCaseSensitive = true;
 		$this->ywf->generateTagList();
 		$this->assertEquals($this->outputFixture[8], $this->ywf->tagFrequencyList);
 	}
-/*
+
 	public function testBlackListFile() {
-		$this->assertTrue(false);
+		$this->ywf->sourceList = array($this->inputFixture[0]);
+		$this->ywf->blacklistFile = array('blacklist_en.txt');
+		$this->ywf->generateTagList();
+		$this->assertEquals($this->outputFixture[9], $this->ywf->tagFrequencyList);
+	}
+
+	public function testBlackListFileCaseSensitive() {
+		$this->ywf->sourceList = array($this->inputFixture[0]);
+		$this->ywf->blacklistFile = array('blacklist_en.txt');
+		$this->ywf->blacklistCaseSensitive = true;
+		$this->ywf->generateTagList();
+		$this->assertEquals($this->outputFixture[10], $this->ywf->tagFrequencyList);
 	}
 
 	public function testBlackListRegexp() {
-		$this->assertTrue(false);
+		$this->ywf->sourceList = array($this->inputFixture[0]);
+		$this->ywf->blacklistRegularExpression = array('#^[Tt]#', '#^[Ss]#');
+		$this->ywf->generateTagList();
+		$this->assertEquals($this->outputFixture[11], $this->ywf->tagFrequencyList);
 	}
 	
-	public function testWhiteList() {
-		$this->assertTrue(false);
+	public function testBlackListRegexpFile() {
+		$this->ywf->sourceList = array($this->inputFixture[0]);
+		$this->ywf->blacklistRegularExpressionFile = array('regexp_test_1.txt', 'regexp_test_2.txt');
+		$this->ywf->generateTagList();
+		$this->assertEquals($this->outputFixture[12], $this->ywf->tagFrequencyList);
+	}
+
+	public function testWhitelist() {
+		$this->ywf->sourceList = array($this->inputFixture[0]);
+		$this->ywf->whitelist = array('this', 'is');
+		$this->ywf->generateTagList();
+		$this->assertEquals($this->outputFixture[13], $this->ywf->tagFrequencyList);
+	}
+
+	public function testWhiteListCaseSensitive() {
+		$this->ywf->sourceList = array($this->inputFixture[0]);
+		$this->ywf->whitelist = array('this', 'is');
+		$this->ywf->whitelistCaseSensitive = true;
+		$this->ywf->generateTagList();
+		$this->assertEquals($this->outputFixture[14], $this->ywf->tagFrequencyList);
 	}
 
 	public function testWhiteListFile() {
-		$this->assertTrue(false);
+		$this->ywf->sourceList = array($this->inputFixture[0]);
+		$this->ywf->whitelistFile = array('whitelist_test.txt');
+		$this->ywf->generateTagList();
+		$this->assertEquals($this->outputFixture[13], $this->ywf->tagFrequencyList);
+	}
+
+	public function testWhiteListFileCaseSensitive() {
+		$this->ywf->sourceList = array($this->inputFixture[0]);
+		$this->ywf->whitelistFile = array('whitelist_test.txt');
+		$this->ywf->whitelistCaseSensitive = true;
+		$this->ywf->generateTagList();
+		$this->assertEquals($this->outputFixture[14], $this->ywf->tagFrequencyList);
 	}
 
 	public function testWhiteListRegexp() {
-		$this->assertTrue(false);
+		$this->ywf->sourceList = array($this->inputFixture[0]);
+		$this->ywf->whitelistRegularExpression = array('#^T#', '#^t#', '#^[Ss]#', '#^s#');
+		$this->ywf->generateTagList();
+		$this->assertEquals($this->outputFixture[15], $this->ywf->tagFrequencyList);
 	}
-	
-	public function testReplacementList() {
+
+	public function testWhiteListRegexp2() {
+		$this->ywf->sourceList = array($this->inputFixture[0]);
+		$this->ywf->whitelistRegularExpression = array('#T#', '#is#', '#^[Tt]#');
+		$this->ywf->generateTagList();
+		$this->assertEquals($this->outputFixture[17], $this->ywf->tagFrequencyList);
+	}
+
+	public function testWhiteListRegexpFile() {
+		$this->ywf->sourceList = array($this->inputFixture[0]);
+		$this->ywf->whitelistRegularExpressionFile = array('regexp_test_1.txt', 'regexp_test_2.txt');
+		$this->ywf->generateTagList();
+		$this->assertEquals($this->outputFixture[16], $this->ywf->tagFrequencyList);
+	}
+
+	public function testSubstitutionList() {
+		$this->ywf->sourceList = array($this->inputFixture[0]);
+		$this->ywf->substitutionlist = array('.' => 'X');
+		$this->ywf->generateTagList();
+		$this->assertEquals($this->outputFixture[18], $this->ywf->tagFrequencyList);
+	}
+
+	public function testSubstitutionListFile() {
+		$this->ywf->sourceList = array($this->inputFixture[0]);
+		$this->ywf->substitutionlistFile = array('punctuation_en.php');
+		$this->ywf->generateTagList();
+		$this->assertEquals($this->outputFixture[19], $this->ywf->tagFrequencyList);
+	}
+
+	public function testSubstitutionListFileNoCase() {
+		$this->ywf->sourceList = array($this->inputFixture[0]);
+		$this->ywf->substitutionlistFile = array('punctuation_en.php', 'testcase.php');
+		$this->ywf->substitutionlistCaseSensitive = true;
+		$this->ywf->generateTagList();
+		$this->assertEquals($this->outputFixture[20], $this->ywf->tagFrequencyList);
+	}
+/*
+	public function testSubstitutionListRegularExpression() {
 		$this->assertTrue(false);
 	}
 
-	public function testReplacementFile() {
+	public function testSubstitutionListRegularExpressionFile() {
 		$this->assertTrue(false);
 	}
 
-	public function testReplacementRegexp() {
+	public function testSubstitutionListRegularExpressionFileNoCase() {
 		$this->assertTrue(false);
 	}
 
@@ -227,6 +332,22 @@ class YiiWordFrequencyTest extends CDbTestCase {
 
 	public function testInitializationAtCreate() {
 		// Need to delete the ywf object and create a new one with all initializaiton in the create config array
+	}
+
+	public function testNonUsageWarning1() {
+		$this->assertTrue(false);
+	}
+	
+	public function testNonUsageWarning2() {
+		$this->assertTrue(false);
+	}
+	
+	public function testNonUsageWarning3() {
+		$this->assertTrue(false);
+	}
+
+	public function testWrongOrderWarning() {
+		$this->assertTrue(false);
 	}
 	
 	public function testComprehensive() {
