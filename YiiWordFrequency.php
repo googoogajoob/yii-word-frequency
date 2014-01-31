@@ -481,7 +481,7 @@ class YiiWordFrequency extends CComponent
 		$compositeSubstitutionlist = array();
 		//read substitutionlist terms from substitutionlist asset files
 		foreach ($this->substitutionlistFile as $v) {
-			$filePathName = $this->extensionAssetUrl . DIRECTORY_SEPARATOR . 'substitution' . DIRECTORY_SEPARATOR . $v;
+			$filePathName = $this->extensionAssetUrl . DIRECTORY_SEPARATOR . $v;
 			if (file_exists($filePathName)) {
 				foreach(require($filePathName) as $k => $v) {
 					$compositeSubstitutionlist[$k] = $v;
@@ -515,10 +515,7 @@ class YiiWordFrequency extends CComponent
 	 * removes items from $this->internalTagList which are in the $substitutionlistRegularExpression references
 	 */
 	protected function substitutionlistRegularExpressionFilter() {
-		// merge all substitutionlist values into one array
-		$compositeSubstitutionlist = array(); 
-		array_walk_recursive($this->substitutionlistRegularExpression, create_function('$val, $key, $obj', 'array_push($obj, $val);'), &$compositeSubstitutionlist); 
-		$this->substitutionlistRegularExpressionRemovalUtility($compositeSubstitutionlist, true);
+		$this->substitutionlistRemovalUtility($this->substitutionlistRegularExpression);
 	}
 
 	/**

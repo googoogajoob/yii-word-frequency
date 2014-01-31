@@ -315,43 +315,37 @@ class YiiWordFrequencyTest extends CDbTestCase {
 	}
 /*
 	public function testSubstitutionListRegularExpression() {
-		$this->assertTrue(false);
 	}
 
 	public function testSubstitutionListRegularExpressionFile() {
-		$this->assertTrue(false);
 	}
 
 	public function testSubstitutionListRegularExpressionFileNoCase() {
-		$this->assertTrue(false);
 	}
 
 	public function testMethodChaining() {
-		$this->assertTrue(false);
 	}
 
 	public function testInitializationAtCreate() {
 		// Need to delete the ywf object and create a new one with all initializaiton in the create config array
 	}
 
+	public function testAssetDirectoryConfig() {
+	}
+
 	public function testNonUsageWarning1() {
-		$this->assertTrue(false);
 	}
 	
 	public function testNonUsageWarning2() {
-		$this->assertTrue(false);
 	}
 	
 	public function testNonUsageWarning3() {
-		$this->assertTrue(false);
 	}
 
 	public function testWrongOrderWarning() {
-		$this->assertTrue(false);
 	}
 	
 	public function testComprehensive() {
-		$this->assertTrue(false);
 	}
 */
 	public function tearDown() {
