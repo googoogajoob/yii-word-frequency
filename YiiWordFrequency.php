@@ -31,6 +31,7 @@
  *			this together with a substitution list can be combined to remove dates and times
  *		- force the case of the tag cloud (upper lower, leave alone)
  *		- sort the tag list (ascending, descending, leave alone)
+ * 	- All regular expression filtering is performed using preg_grep, preg_replace() 
  *
  *	Usage example, from a view:
  * @todo refactor example
@@ -43,13 +44,13 @@
  *				'activeRecordSourceList' => array(
  *							array('model'=>$sampleActiveRecordModel, 'attribute'=>array('sampleFieldAttribute', 'fieldTwo')),
  *						),
- * 			'blacklistFile' => array(
- *					'blacklist_alphabet.txt',
- *					'blacklist_de.txt',
- *					'blacklist_en.txt',
- *					'blacklist_umlaut.txt',
+ * 			'blackListFile' => array(
+ *					'blackList_alphabet.txt',
+ *					'blackList_de.txt',
+ *					'blackList_en.txt',
+ *					'blackList_umlaut.txt',
  *				), 
- *				'blacklist' => array(
+ *				'blackList' => array(
  *							array('a', 'an', 'be', 'can', 'the', 'these'),
  *						),
  *				'substitutionList' => array(
@@ -117,54 +118,54 @@ class YiiWordFrequency extends CComponent
 	 * be ignored (for example in English 'the', 'a', 'and' etc.), 
 	 * they can also be maintained for different languages, different technical fields etc. 
 	 */
-	public $blacklist = array();
+	public $blackList = array();
 	
 	/**
 	 * @var a one-dimensional array of filenames which contain blacklist words
 	 * A reference to a text file containing a list of words:
 	 * The file must be located in the assets directory of this extension 
 	 * and the words in the file must be one per line 
-	 * @see $blacklist for a description of blacklists
+	 * @see $blackList for a description of blacklists
 	 * (several pre-defined lists are included, @see assets directory)
 	 */
-	public $blacklistFile = array();
+	public $blackListFile = array();
 
 	/**
 	 * @var a one-dimensional array containing references to regular expression blacklists
 	 * An array of regular expressions. Words form the source texts which matched a regular expressions
 	 * will be removed. The array depth can be arbitrarily deep as it is processed internally 
 	 * with array_walk_recursive to retrieve all values present.
-	 * @see $blacklist for a description of blacklists
+	 * @see $blackList for a description of blacklists
 	 */
-	public $blacklistRegularExpression = array();
+	public $blackListRegularExpression = array();
 
 	/**
 	 * @var a one-dimensional array of filenames which contain blacklist words
 	 * A reference to a text file containing a list of regular expression:
 	 * The file must be located in the assets directory of this extension 
 	 * and the regularexpressions in the file must be one per line 
-	 * @see $blacklist for a description of blacklists
+	 * @see $blackList for a description of blacklists
 	 * (several pre-defined lists are included, @see assets directory)
 	 */
-	public $blacklistRegularExpressionFile = array();
+	public $blackListRegularExpressionFile = array();
 
 	/**
 	* @var boolean whether or not the blacklist comparison should be case insensitive
-	* Only valid for $blacklist. NOT valid for $blacklistRegularExpression or $blacklistRegularExpressionFile
+	* Only valid for $blackList. NOT valid for $blackListRegularExpression or $blackListRegularExpressionFile
 	*/
-	public $blacklistCaseSensitive = false;
+	public $blackListCaseSensitive = false;
 	
 	/**
-	 *  The $whitelist* parameters operate analagous to the $blacklist* parameters
-	 *  The difference is in the result. Whitelist values act as a positive filter. 
-	 *  Only the values listed in the whitelist parameters will be counted in the frequency list
-	 * @see description of the $blacklist parameters
+	 * The $whiteList* parameters operate analagous to the $blackList* parameters
+	 * The difference is in the result. Whitelist values act as a positive filter. 
+	 * Only the values listed in the whitelist parameters will be counted in the frequency list
+	 * @see description of the $blackList parameters
 	 */
-	public $whitelist = array();
-	public $whitelistFile = array();
-	public $whitelistRegularExpression = array();
-	public $whitelistRegularExpressionFile = array();
-	public $whitelistCaseSensitive = false;
+	public $whiteList = array();
+	public $whiteListFile = array();
+	public $whiteListRegularExpression = array();
+	public $whiteListRegularExpressionFile = array();
+	public $whiteListCaseSensitive = false;
 
 	/**
 	* @var array of key value search and replace strings. Useful for eliminating punction marks from text, for example
@@ -172,14 +173,14 @@ class YiiWordFrequency extends CComponent
 	* One exception, however, is that tree array structures are not supported. The Arrays must be a one-dimensional
 	* Key=>value array. The Key is the text to be searched for (i.e matched against) and the value is the replacement text.
 	* 
-	* One major difference between the substitutiolist* üarameters and the others are that they must be PHP files, which
-	* return a key/value array. They are also located in the substitution sub-directory under assets.
+	* One major difference between the substitutioList* parameters and the others are that they must be PHP files, which
+	* return a key/value array.
 	*/
-	public $substitutionlist = array();
-	public $substitutionlistFile = array();
-	public $substitutionlistRegularExpression = array();
-	public $substitutionlistRegularExpressionFile = array();
-	public $substitutionlistCaseSensitive = false;
+	public $substitutionList = array();
+	public $substitutionListFile = array();
+	public $substitutionListRegularExpression = array();
+	public $substitutionListRegularExpressionFile = array();
+	public $substitutionListCaseSensitive = false;
 	
 	/**
 	* @var integer, negative = force lowercase, 0 = no changes made to case, positive = force uppercase
@@ -187,7 +188,7 @@ class YiiWordFrequency extends CComponent
 	public $forceCase = 0; 
 	
 	/**
-	* @var boolean, true remove numeric strings (such as dates, times etc., only makes sense if punctuation is removed)
+	* @var boolean, true remove numeric strings (such as dates, times etc., only makes sense if punctuation is removed first)
 	*/
 	public $removeNumeric = false; 
 	
@@ -199,21 +200,28 @@ class YiiWordFrequency extends CComponent
 	/**
 	* @var string the URL for this extensions assets directory
 	*/
-	protected $extensionAssetUrl;
+	public $extensionAssetUrl;
 	
 	/**
-	 * 
-	 */	
-	function __construct()	{
-		$this->extensionAssetUrl = dirname(__FILE__) . DIRECTORY_SEPARATOR . 'assets';
+	* @var boolean flag indication if the filters or methods have been called
+	*/
+	protected $accumulateVisited = false;
+	protected $blackListVisited = false;
+	protected $whiteListVisited = false;
+	protected $substitutionListVisited = false;
+	
+	public function __construct() {
+		$this->extensionAssetUrl = __DIR__ . DIRECTORY_SEPARATOR . 'assets';
 	}
-
+	
 	public function addSource($newSource) {
 		if (is_string($newSource) or is_array($newSource)) {
 			$this->sourceList[] = $newSource;
 		} else {
-			Yii::log(Yii::t('yii','Invalid source type in "{method}". String or arry of strings expected.', array('{method}'=>__METHOD__)),CLogger::LEVEL_WARNING);			
+			Yii::log(Yii::t('yii','Invalid source type in "{method}". String or array of strings expected.', array('{method}'=>__METHOD__)),CLogger::LEVEL_WARNING);
 		}
+		
+		return $this;
 	}
 	
 	/**
@@ -225,6 +233,7 @@ class YiiWordFrequency extends CComponent
 		} else {
 			Yii::log(Yii::t('yii','Invaled source type in "{method}". Active Record Model and CDbCriteria objects expected.', array('{method}'=>__METHOD__)),CLogger::LEVEL_WARNING);			
 		}
+		return $this;
 	}
 	
 	/**
@@ -256,7 +265,7 @@ class YiiWordFrequency extends CComponent
 	* in the array must not be individual words they can be strings with several words.
 	* @param array $arraySource list of words to be added as tags to $this->internalTagList
 	*/
-	protected function accumulateTagsfromArrays($arraySource) {
+	protected function accumulateFromArrays($arraySource) {
 		array_walk_recursive($arraySource, array($this, "addStringToTagList"));
 	}
 
@@ -266,7 +275,7 @@ class YiiWordFrequency extends CComponent
 	 * model: is the active record (e.g. the value returned by the findAll() function) 
 	 * attribute: another array with a list of attribute names from the active record, whose text values should be imported
 	 */
-	protected function accumulateTagsfromActiveRecords($arModel, $arCriteria) {
+	protected function accumulateFromActiveRecords($arModel, $arCriteria) {
 		$rows = $arModel->findAll($arCriteria);
 		foreach ($rows as $rowk => $rowv) {
 			$singleRow = $rowv->getAttributes(null);
@@ -280,92 +289,94 @@ class YiiWordFrequency extends CComponent
 	 * Calls all functions to import word/tags from all import sources: string, array list, avtive records
 	 * The three types of sources are distinguished by thier types: string, array, object
 	 */
-	public function accumulateTagsfromSources() {
+	public function accumulateSources() {
+		$this->accumulateVisited = true;
 		foreach ($this->sourceList as $v) {
 			if (is_string($v)) {
 				$this->addStringToTagList($v);
 			} elseif (is_array($v)) {
 				if (is_array($v[0])) {
-					$this->accumulateTagsfromArrays($v);
+					$this->accumulateFromArrays($v);
 				} elseif (is_object($v[0])) {
-					$this->accumulateTagsfromActiveRecords($v[0], $v[1]);
+					$this->accumulateFromActiveRecords($v[0], $v[1]);
 				} else {
 					throw new CException(Yii::t('yii', 'Invalid string source in class {class}.', array('{class}'=>__CLASS__)));
 				}
 			}
 		}
+		return $this;		
 	}
 
 	/**
-	 * removes items from $this->internalTagList which are in the $blacklist references
+	 * removes items from $this->internalTagList which are in the $blackList references
 	 */
-	protected function blacklistFilter() {
+	protected function blackListFilter() {
 		// merge all blacklist values into one array
-		$compositeBlacklist = array(); 
-		array_walk_recursive($this->blacklist, create_function('$val, $key, $obj', 'array_push($obj, $val);'), &$compositeBlacklist); 
-		$this->blacklistRemovalUtility($compositeBlacklist);
+		$compositeBlackList = array(); 
+		array_walk_recursive($this->blackList, create_function('$val, $key, $obj', 'array_push($obj, $val);'), &$compositeBlackList); 
+		$this->blackListRemovalUtility($compositeBlackList);
 	}
 	
-	protected function blacklistFileFilter() {
-		$compositeBlacklist = array();
-		//read blacklist terms from blacklist asset files
-		foreach ($this->blacklistFile as $v) {
+	protected function blackListFileFilter() {
+		$compositeBlackList = array();
+		//read blacklist terms from blackList asset files
+		foreach ($this->blackListFile as $v) {
 			$filePathName = $this->extensionAssetUrl . DIRECTORY_SEPARATOR . $v;
 			if (file_exists($filePathName)) {
-				$compositeBlacklist = array_merge($compositeBlacklist, file($filePathName, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES));
+				$compositeBlackList = array_merge($compositeBlackList, file($filePathName, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES));
 			} else {
 				throw new CException(Yii::t('yii', 'Blacklist File "{file}" not found in {method}.',
 											array('{method}'=>__METHOD__, '{file}'=>$filePathName)));
 			}
 		}
-		$this->blacklistRemovalUtility($compositeBlacklist);
+		$this->blackListRemovalUtility($compositeBlackList);
 	}
 	
 	/**
 	 *  Utility function for removing blacklisted items from a blacklist array
 	 */
-	protected function blacklistRemovalUtility($blacklist) {
+	protected function blackListRemovalUtility($blackList) {
 		//remove blacklisted words
 		$inputList = $this->internalTagList;
-		if ($this->blacklistCaseSensitive) {
-			$this->internalTagList = array_udiff($inputList, $blacklist, 'strcmp');
+		if ($this->blackListCaseSensitive) {
+			$this->internalTagList = array_udiff($inputList, $blackList, 'strcmp');
 		} else {
-			$this->internalTagList = array_udiff($inputList, $blacklist, 'strcasecmp');
+			$this->internalTagList = array_udiff($inputList, $blackList, 'strcasecmp');
 		}
 	}
 	
 	/**
-	 * removes items from $this->internalTagList which are in the $blacklistRegularExpression references
+	 * removes items from $this->internalTagList which are in the $blackListRegularExpression references
 	 */
-	protected function blacklistRegularExpressionFilter() {
+	protected function blackListRegularExpressionFilter() {
 		// merge all blacklist values into one array
-		$compositeBlacklist = array(); 
-		array_walk_recursive($this->blacklistRegularExpression, create_function('$val, $key, $obj', 'array_push($obj, $val);'), &$compositeBlacklist); 
-		$this->blacklistRegularExpressionRemovalUtility($compositeBlacklist);
+		$compositeBlackList = array(); 
+		array_walk_recursive($this->blackListRegularExpression, create_function('$val, $key, $obj', 'array_push($obj, $val);'), &$compositeBlackList); 
+		$this->blackListRegularExpressionRemovalUtility($compositeBlackList);
 	}
 
 	/**
 	 * removes items from $this->internalTagList which are in the $blacklistRegularExpressionFile references
 	 */
-	protected function blacklistRegularExpressionFileFilter() {
-		$compositeBlacklist = array();
+	protected function blackListRegularExpressionFileFilter() {
+		$compositeBlackList = array();
 		//read blacklist terms from blacklist asset files
-		foreach ($this->blacklistRegularExpressionFile as $v) {
+		foreach ($this->blackListRegularExpressionFile as $v) {
 			$filePathName = $this->extensionAssetUrl . DIRECTORY_SEPARATOR . $v;
 			if (file_exists($filePathName)) {
-				$compositeBlacklist = array_merge($compositeBlacklist, file($filePathName, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES));
+				$compositeBlackList = array_merge($compositeBlackList, file($filePathName, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES));
 			} else {
 				throw new CException(Yii::t('yii', 'Blacklist Regular Expression File "{file}" not found in {method}.',
 											array('{method}'=>__METHOD__, '{file}'=>$filePathName)));
 			}
 		}
-		$this->blacklistRegularExpressionRemovalUtility($compositeBlacklist);
+		$this->blackListRegularExpressionRemovalUtility($compositeBlackList);
 	}
 
 	/**
 	 *  Utility function for removing matches to regular expressions
 	 */
-	protected function blacklistRegularExpressionRemovalUtility($regularExpressionList) {
+	protected function blackListRegularExpressionRemovalUtility($regularExpressionList) {
 		//remove blacklisted regular expression
 		foreach ($regularExpressionList as $v) {
 			$inputList = $this->internalTagList;
@@ -373,83 +384,86 @@ class YiiWordFrequency extends CComponent
 		}
 	}
 
-	public function blacklistFilterAll() {
-		if (count($this->blacklist)) $this->blacklistFilter();
-		if (count($this->blacklistFile)) $this->blacklistFileFilter();
-		if (count($this->blacklistRegularExpression)) $this->blacklistRegularExpressionFilter();
-		if (count($this->blacklistRegularExpressionFile)) $this->blacklistRegularExpressionFileFilter();
+	public function runBlackListFilter() {
+		$this->blackListVisited = true;
+		if (count($this->blackList)) $this->blackListFilter();
+		if (count($this->blackListFile)) $this->blackListFileFilter();
+		if (count($this->blackListRegularExpression)) $this->blackListRegularExpressionFilter();
+		if (count($this->blackListRegularExpressionFile)) $this->blackListRegularExpressionFileFilter();
+
+		return $this;
 	}
 	
 	/**
-	 * removes items from $this->internalTagList which are in the $whitelist references
+	 * removes items from $this->internalTagList which are in the $whiteList references
 	 */
-	protected function whitelistFilter() {
+	protected function whiteListFilter() {
 		// merge all whitelist values into one array
-		$compositeWhitelist = array(); 
-		array_walk_recursive($this->whitelist, create_function('$val, $key, $obj', 'array_push($obj, $val);'), &$compositeWhitelist); 
-		$this->whitelistRemovalUtility($compositeWhitelist);
+		$compositeWhiteList = array(); 
+		array_walk_recursive($this->whiteList, create_function('$val, $key, $obj', 'array_push($obj, $val);'), &$compositeWhiteList); 
+		$this->whiteListRemovalUtility($compositeWhiteList);
 	}
 	
-	protected function whitelistFileFilter() {
-		$compositeWhitelist = array();
+	protected function whiteListFileFilter() {
+		$compositeWhiteList = array();
 		//read whitelist terms from whitelist asset files
-		foreach ($this->whitelistFile as $v) {
+		foreach ($this->whiteListFile as $v) {
 			$filePathName = $this->extensionAssetUrl . DIRECTORY_SEPARATOR . $v;
 			if (file_exists($filePathName)) {
-				$compositeWhitelist = array_merge($compositeWhitelist, file($filePathName, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES));
+				$compositeWhiteList = array_merge($compositeWhiteList, file($filePathName, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES));
 			} else {
 				throw new CException(Yii::t('yii', 'Whitelist File "{file}" not found in {method}.',
 											array('{method}'=>__METHOD__, '{file}'=>$filePathName)));
 			}
 		}
-		$this->whitelistRemovalUtility($compositeWhitelist);
+		$this->whiteListRemovalUtility($compositeWhiteList);
 	}
 	
 	/**
 	 *  Utility function for removing whitelisted items from a whitelist array
 	 */
-	protected function whitelistRemovalUtility($whitelist) {
+	protected function whiteListRemovalUtility($whiteList) {
 		//remove whitelisted words
 		$inputList = $this->internalTagList;
-		if ($this->whitelistCaseSensitive) {
-			$this->internalTagList = array_uintersect($inputList, $whitelist, 'strcmp');
+		if ($this->whiteListCaseSensitive) {
+			$this->internalTagList = array_uintersect($inputList, $whiteList, 'strcmp');
 		} else {
-			$this->internalTagList = array_uintersect($inputList, $whitelist, 'strcasecmp');
+			$this->internalTagList = array_uintersect($inputList, $whiteList, 'strcasecmp');
 		}
 	}
 	
 	/**
-	 * removes items from $this->internalTagList which are in the $whitelistRegularExpression references
+	 * removes items from $this->internalTagList which are in the $whiteListRegularExpression references
 	 */
-	protected function whitelistRegularExpressionFilter() {
+	protected function whiteListRegularExpressionFilter() {
 		// merge all whitelist values into one array
-		$compositeWhitelist = array(); 
-		array_walk_recursive($this->whitelistRegularExpression, create_function('$val, $key, $obj', 'array_push($obj, $val);'), &$compositeWhitelist); 
-		$this->whitelistRegularExpressionRemovalUtility($compositeWhitelist, true);
+		$compositeWhiteList = array(); 
+		array_walk_recursive($this->whiteListRegularExpression, create_function('$val, $key, $obj', 'array_push($obj, $val);'), &$compositeWhiteList); 
+		$this->whiteListRegularExpressionRemovalUtility($compositeWhiteList, true);
 	}
 
 	/**
-	 * removes items from $this->internalTagList which are in the $whitelistRegularExpressionFile references
+	 * removes items from $this->internalTagList which are in the $whiteListRegularExpressionFile references
 	 */
-	protected function whitelistRegularExpressionFileFilter() {
-		$compositeWhitelist = array();
-		//read whitelist terms from whitelist asset files
-		foreach ($this->whitelistRegularExpressionFile as $v) {
+	protected function whiteListRegularExpressionFileFilter() {
+		$compositeWhiteList = array();
+		//read whitelist terms from whiteList asset files
+		foreach ($this->whiteListRegularExpressionFile as $v) {
 			$filePathName = $this->extensionAssetUrl . DIRECTORY_SEPARATOR . $v;
 			if (file_exists($filePathName)) {
-				$compositeWhitelist = array_merge($compositeWhitelist, file($filePathName, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES));
+				$compositeWhiteList = array_merge($compositeWhiteList, file($filePathName, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES));
 			} else {
 				throw new CException(Yii::t('yii', 'Whitelist Regular Expression File "{file}" not found in {method}.',
 											array('{method}'=>__METHOD__, '{file}'=>$filePathName)));
 			}
 		}
-		$this->whitelistRegularExpressionRemovalUtility($compositeWhitelist, true);
+		$this->whiteListRegularExpressionRemovalUtility($compositeWhiteList, true);
 	}
 
 	/**
 	 *  Utility function for removing matches to regular expressions
 	 */
-	protected function whitelistRegularExpressionRemovalUtility($regularExpressionList) {
+	protected function whiteListRegularExpressionRemovalUtility($regularExpressionList) {
 		// Whenever an array element is include it must be removed from further whitelist 
 		// Tests, otherwise elements may be counted multiple times.
 		// Thus inputList starts with the full selection of words and is succesively reduced
@@ -463,50 +477,53 @@ class YiiWordFrequency extends CComponent
 		$this->internalTagList = $partialList;
 	}
 
-	public function whitelistFilterAll() {
-		if (count($this->whitelist)) $this->whitelistFilter();
-		if (count($this->whitelistFile)) $this->whitelistFileFilter();
-		if (count($this->whitelistRegularExpression)) $this->whitelistRegularExpressionFilter();
-		if (count($this->whitelistRegularExpressionFile)) $this->whitelistRegularExpressionFileFilter();
+	public function runWhiteListFilter() {
+		$this->whiteListVisited = true;
+		if (count($this->whiteList)) $this->whiteListFilter();
+		if (count($this->whiteListFile)) $this->whiteListFileFilter();
+		if (count($this->whiteListRegularExpression)) $this->whiteListRegularExpressionFilter();
+		if (count($this->whiteListRegularExpressionFile)) $this->whiteListRegularExpressionFileFilter();
+
+		return $this;
 	}
 	
 	/**
 	 * removes items from $this->internalTagList which are in the $substitutionlist references
 	 */
-	protected function substitutionlistFilter() {
-		$this->substitutionlistRemovalUtility($this->substitutionlist);
+	protected function substitutionListFilter() {
+		$this->substitutionListRemovalUtility($this->substitutionList);
 	}
 	
-	protected function substitutionlistFileFilter() {
-		$compositeSubstitutionlist = array();
+	protected function substitutionListFileFilter() {
+		$compositeSubstitutionList = array();
 		//read substitutionlist terms from substitutionlist asset files
-		foreach ($this->substitutionlistFile as $v) {
+		foreach ($this->substitutionListFile as $v) {
 			$filePathName = $this->extensionAssetUrl . DIRECTORY_SEPARATOR . $v;
 			if (file_exists($filePathName)) {
 				foreach(require($filePathName) as $k => $v) {
-					$compositeSubstitutionlist[$k] = $v;
+					$compositeSubstitutionList[$k] = $v;
 				}
 			} else {
 				throw new CException(Yii::t('yii', 'Substitutionlist File "{file}" not found in {method}.',
 											array('{method}'=>__METHOD__, '{file}'=>$filePathName)));
 			}
 		}
-		$this->substitutionlistRemovalUtility($compositeSubstitutionlist);
+		$this->substitutionListRemovalUtility($compositeSubstitutionList);
 	}
 	
 	/**
-	 *  Utility function for removing substitutionlisted items from a substitutionlist array
+	 *  Utility function for removing substitutionlisted items from a substitutionList array
 	 */
-	protected function substitutionlistRemovalUtility($substitutionlist) {
-		if ($this->substitutionlistCaseSensitive) {
+	protected function substitutionListRemovalUtility($substitutionList) {
+		if ($this->substitutionListCaseSensitive) {
 			$this->internalTagList = str_ireplace(
-				array_keys($substitutionlist), 
-				array_values($substitutionlist), 
+				array_keys($substitutionList), 
+				array_values($substitutionList), 
 				$this->internalTagList);
 		} else {
 			$this->internalTagList = str_replace(
-				array_keys($substitutionlist), 
-				array_values($substitutionlist), 
+				array_keys($substitutionList), 
+				array_values($substitutionList), 
 				$this->internalTagList);
 		}
 	}
@@ -514,50 +531,48 @@ class YiiWordFrequency extends CComponent
 	/**
 	 * removes items from $this->internalTagList which are in the $substitutionlistRegularExpression references
 	 */
-	protected function substitutionlistRegularExpressionFilter() {
-		$this->substitutionlistRemovalUtility($this->substitutionlistRegularExpression);
+	protected function substitutionListRegularExpressionFilter() {
+		$this->substitutionListRegularExpressionRemovalUtility($this->substitutionListRegularExpression);
 	}
 
 	/**
-	 * removes items from $this->internalTagList which are in the $substitutionlistRegularExpressionFile references
+	 * removes items from $this->internalTagList which are in the $substitutionListRegularExpressionFile references
 	 */
-	protected function substitutionlistRegularExpressionFileFilter() {
-		$compositeSubstitutionlist = array();
+	protected function substitutionListRegularExpressionFileFilter() {
+		$compositeSubstitutionList = array();
 		//read substitutionlist terms from substitutionlist asset files
-		foreach ($this->substitutionlistRegularExpressionFile as $v) {
+		foreach ($this->substitutionListRegularExpressionFile as $v) {
 			$filePathName = $this->extensionAssetUrl . DIRECTORY_SEPARATOR . $v;
 			if (file_exists($filePathName)) {
-				$compositeSubstitutionlist = array_merge($compositeSubstitutionlist, file($filePathName, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES));
+				foreach(require($filePathName) as $k => $v) {
+					$compositeSubstitutionList[$k] = $v;
+				}
 			} else {
 				throw new CException(Yii::t('yii', 'Substitutionlist Regular Expression File "{file}" not found in {method}.',
 											array('{method}'=>__METHOD__, '{file}'=>$filePathName)));
 			}
 		}
-		$this->substitutionlistRegularExpressionRemovalUtility($compositeSubstitutionlist, true);
+		$this->substitutionListRegularExpressionRemovalUtility($compositeSubstitutionList);
 	}
 
 	/**
 	 *  Utility function for removing matches to regular expressions
 	 */
-	protected function substitutionlistRegularExpressionRemovalUtility($regularExpressionList) {
-		// Whenever an array element is include it must be removed from further substitutionlist 
-		// Tests, otherwise elements may be counted multiple times.
-		// Thus inputList starts with the full selection of words and is succesively reduced
-		$inputList = $this->internalTagList; //initialize, list to compare against
-		$partialList = array(); //initialize, list of found items
-		foreach ($regularExpressionList as $v) {
-			$matchingElements = preg_grep ($v, $inputList); // Find items in list which match the regular expression
-			$partialList = array_merge($partialList, $matchingElements); //Add matching items to the growing list of found items
-			$inputList = array_diff($inputList, $matchingElements); //remove matching elements from list to be searched
-		}
-		$this->internalTagList = $partialList;
+	protected function substitutionListRegularExpressionRemovalUtility($regularExpressionList) {
+		$this->internalTagList = preg_replace(
+			array_keys($regularExpressionList), 
+			array_values($regularExpressionList), 
+			$this->internalTagList);
 	}
 
-	public function substitutionlistFilterAll() {
-		if (count($this->substitutionlist)) $this->substitutionlistFilter();
-		if (count($this->substitutionlistFile)) $this->substitutionlistFileFilter();
-		if (count($this->substitutionlistRegularExpression)) $this->substitutionlistRegularExpressionFilter();
-		if (count($this->substitutionlistRegularExpressionFile)) $this->substitutionlistRegularExpressionFileFilter();
+	public function runSubstitutionListFilter() {
+		$this->substitutionListVisited = true;
+		if (count($this->substitutionList)) $this->substitutionListFilter();
+		if (count($this->substitutionListFile)) $this->substitutionListFileFilter();
+		if (count($this->substitutionListRegularExpression)) $this->substitutionListRegularExpressionFilter();
+		if (count($this->substitutionListRegularExpressionFile)) $this->substitutionListRegularExpressionFileFilter();
+
+		return $this;
 	}
 
 	/**
@@ -568,21 +583,55 @@ class YiiWordFrequency extends CComponent
 	 * @todo need to refine logic to also remove "0"
 	 */
 	protected function removeNumericItems($inputList) {
-		return array_filter($inputList, function($arg) { return intval($arg) == 0; });
+		return array_filter($inputList, function($arg) { return !(intval($arg) > 0 or $arg == '0'); });
+	}
+
+	protected function issueUsageWarnings() {
+		if (!$this->accumulateVisited) {
+			Yii::log(Yii::t('yii','Sources have not been accumulated in "{class}".', array('{class}'=>__CLASS__)),CLogger::LEVEL_WARNING);			
+		}
+		
+		if (count($this->sourceList == 0)) {
+			Yii::log(Yii::t('yii','No sources defined in "{class}".', array('{class}'=>__CLASS__)),CLogger::LEVEL_WARNING);			
+		}
+	
+		if (count($this->internalTagList) == 0) {
+			Yii::log(Yii::t('yii','Sources have produced no results "{class}".', array('{class}'=>__CLASS__)),CLogger::LEVEL_WARNING);			
+		}
+		
+		$countCheck =  count($this->blackList) +
+							count($this->blackListFile) +
+							count($this->blackListRegularExpression) +
+							count($this->blackListRegularExpressionFile);							
+		if (($countCheck) and (!$this->blackListVisited)) {
+			Yii::log(Yii::t('yii','Blacklist defined but not used in "{class}".', array('{class}'=>__CLASS__)),CLogger::LEVEL_WARNING);			
+		}
+
+		$countCheck =  count($this->whiteList) +
+							count($this->whiteListFile) +
+							count($this->whiteListRegularExpression) +
+							count($this->whiteListRegularExpressionFile);
+		if (($countCheck) and (!$this->whiteListVisited)) {
+			Yii::log(Yii::t('yii','Whitelist defined but not used in "{class}".', array('{class}'=>__CLASS__)),CLogger::LEVEL_WARNING);			
+		}
+
+		$countCheck = 	count($this->substitutionList) + 
+							count($this->substitutionListFile) +
+							count($this->substitutionListRegularExpression) +
+							count($this->substitutionListRegularExpressionFile);
+		if (($countCheck) and (!$this->substitutionListVisited)) {
+			Yii::log(Yii::t('yii','Substitution List defined but not used in "{class}".', array('{class}'=>__CLASS__)),CLogger::LEVEL_WARNING);			
+		}
 	}
 
 	/**
 	 * Performs all functions necessary to import tags from all import sources as well as perform
 	 * all subsequent modifications
 	 * The result is that the array $this->frequencyList is created which is then used to display the tag cloud
-	 * @note new in APCTagCloud
 	 * @toDo Locale
 	 */
-	public function generateTagList() {
-		$this->accumulateTagsFromSources(); //accumulate individual tags (multiple occurances allowed) from the various sources
-		$this->blacklistFilterAll();
-		$this->whitelistFilterAll();
-		$this->substitutionlistFilterAll();
+	public function generateList($locale = false) {
+		$this->issueUsageWarnings();
 		if ($this->removeNumeric) {
 			$this->internalTagList = $this->removeNumericItems($this->internalTagList);
 		}
@@ -590,13 +639,10 @@ class YiiWordFrequency extends CComponent
 		//$wordCount = array_count_values($this->internalTagList);
 		$this->tagFrequencyList = array_count_values($this->internalTagList);
 
-		//translate wordcount format to the format needed for displaying the tags
-		//foreach($wordCount as $k => $v) {
-		//	$this->tagFrequencyList[$k] = array('weight' => $v);
-		//}
-		
 		// sort the result (if necessary)
-		setlocale(LC_COLLATE, 'de_DE@euro', 'de_DE', 'de');
+		if ($locale) {
+			setlocale(LC_COLLATE, $locale);
+		}
 		if ($this->sortTagList > 0) {
 			ksort($this->tagFrequencyList, SORT_LOCALE_STRING);
 		} elseif ($this->sortTagList < 0) {
