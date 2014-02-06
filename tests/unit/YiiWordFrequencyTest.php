@@ -81,7 +81,7 @@ class YiiWordFrequencyTest extends CDbTestCase {
 	}
 
 	public function testStringInput() {
-		$this->ywf->sourceList = array($this->inputFixture[0]);
+		$this->ywf->sourceList = $this->inputFixture[0];
 		$this->ywf->accumulateSources();
 		$this->ywf->generateList();
 		$this->assertEquals($this->outputFixture[0], $this->ywf->tagFrequencyList);
@@ -492,21 +492,6 @@ class YiiWordFrequencyTest extends CDbTestCase {
 		$this->assertArrayEquals($this->outputFixture[21], $this->ywf->tagFrequencyList);
 	}
 	
-	public function testComprehensive() {
-		$model = new Testdata;	
-		$criteria=new CDbCriteria();
-		$criteria->addInCondition('id',array(4)); 
-		$criteria->select = "col1, col2, col3";
-		$this->ywf->sourceList = array(array($model, $criteria));
-		$this->ywf->blackListFile = array('blackList_en.txt');
-		$this->ywf->substitutionListFile = array('punctuation_en.php');
-		$this->ywf->removeNumeric = true;
-		$this->ywf->sortTagList = 1;
-		$this->ywf->forceCase = -1;
-		$this->ywf->accumulateSources()->runBlackListFilter()->runSubstitutionListFilter()->generateList();
-		$this->assertEquals($this->outputFixture[0], $this->ywf->tagFrequencyList);
-	}
-
 	public function tearDown() {
 		unset($this->ywf);
 	}

@@ -291,16 +291,20 @@ class YiiWordFrequency extends CComponent
 	 */
 	public function accumulateSources() {
 		$this->accumulateVisited = true;
-		foreach ($this->sourceList as $v) {
-			if (is_string($v)) {
-				$this->addStringToTagList($v);
-			} elseif (is_array($v)) {
-				if (is_array($v[0])) {
-					$this->accumulateFromArrays($v);
-				} elseif (is_object($v[0])) {
-					$this->accumulateFromActiveRecords($v[0], $v[1]);
-				} else {
-					throw new CException(Yii::t('yii', 'Invalid string source in class {class}.', array('{class}'=>__CLASS__)));
+		if (is_string($this->sourceList)) {
+			$this->addStringToTagList($this->sourceList);
+		} else {
+			foreach ($this->sourceList as $v) {
+				if (is_string($v)) {
+					$this->addStringToTagList($v);
+				} elseif (is_array($v)) {
+					if (is_array($v[0])) {
+						$this->accumulateFromArrays($v);
+					} elseif (is_object($v[0])) {
+						$this->accumulateFromActiveRecords($v[0], $v[1]);
+					} else {
+						throw new CException(Yii::t('yii', 'Invalid string source in class {class}.', array('{class}'=>__CLASS__)));
+					}
 				}
 			}
 		}
@@ -591,7 +595,7 @@ class YiiWordFrequency extends CComponent
 			Yii::log(Yii::t('yii','Sources have not been accumulated in "{class}".', array('{class}'=>__CLASS__)),CLogger::LEVEL_WARNING);			
 		}
 		
-		if (count($this->sourceList == 0)) {
+		if (count($this->sourceList) == 0) {
 			Yii::log(Yii::t('yii','No sources defined in "{class}".', array('{class}'=>__CLASS__)),CLogger::LEVEL_WARNING);			
 		}
 	
