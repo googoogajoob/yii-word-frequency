@@ -88,7 +88,7 @@
  * 
  * Usage
  * -----
- * There are four operation phases for using objects of this class
+ * There are four operational phases when using objects of this class
  * 1) Initialization - create objext and specify all sources, filtering lists and additional options
  * 2) Accumulate the token for the specified sources
  * 3) Perform filtering options

@@ -162,7 +162,7 @@ Additional examples of blacklists, whitelists and subsitutionlists can be fgound
 directory of this extension.
  
 ###Usage
-There are four operation phases for using objects of this class
+There are four operational phases when using objects of this class
 * Initialization - create objext and specify all sources, filtering lists and additional options
 * Accumulate the token for the specified sources
 * Perform filtering options
