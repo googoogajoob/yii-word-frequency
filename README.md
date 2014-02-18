@@ -17,9 +17,8 @@ Add "ext.yii-word-frequency" to the import array in config/main.php
 		...
 	),
 
-
 ##Usage
-###A minimalistic example:
+###A minimalistic example
 	$ywf = Yii::createComponent(array('class' => 'YiiWordFrequency'));
 	$ywf->sourceList = 'This is a test string. This is another test string. Test strings are fun.';
 	$ywf->accumulateSources();
