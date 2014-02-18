@@ -163,10 +163,10 @@ directory of this extension.
  
 ###Usage
 There are four operation phases for using objects of this class
-1. Initialization - create objext and specify all sources, filtering lists and additional options
-2. Accumulate the token for the specified sources
-3. Perform filtering options
-4. Generate the token frequency list 
+* Initialization - create objext and specify all sources, filtering lists and additional options
+* Accumulate the token for the specified sources
+* Perform filtering options
+* Generate the token frequency list 
 
 After creation and speicification the accumulation must take place. Generation of the list must also 
 be done last. The filtering options offer fexibility. They can be formed in differing orders. 
