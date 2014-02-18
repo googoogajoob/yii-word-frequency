@@ -2,83 +2,175 @@
 /**
  * @author Andrew Potter <apc@andypotter.org>
  *
- *	This class provides the ability of accumulating a list of words/tags from multiple text sources
- * and generating from them an array which has a list of the unique words used and the number of times 
- * each word occurs in the original source texts.
- * 
- * The initial motivation for this class was for generating the data for a TagCloud 
- * (for example see @link http://www.yiiframework.com/extension/yiitagcloud)
+ * This class provides the ability of accumulating a list of tokens (words, tags, etc.) from 
+ * multiple text sources and generating from them an array which has a unique list of tokens used 
+ * as well as the number of times each token occurs in the original source texts.
  *
- *	Specifically this class can take input from three types of text sources and in addition 
- * provides several means of filtering thier content.
- * 
- * The operational phases of this class are as follows:
- * 1) Initialization - specify the text sources and filtering requirements
- * 2) Gather words from the text sources into an array
- * 3) Filter out unwanted words 
- * 4) Replace words and/or patterns
- * 5) Generate a frequency count 
- * 
- *	Sources can be strings, arrays of strings and active record query results.
- * 
- *	Filting possibilites for modifying the input sources and resulting list include:
- *		- specification of the separation delimiter for separating strings
- *		- a blacklist of words that should not be included in the final tag list
- *		- blacklists can be used which are stored in files under the assets directory of this extension
- *		- a list of substitution characters and their replacements for modifying the input strings, 
- *			this was initialy intended for eliminating punctuation marks 
- *		- a numeric removal flag, removes values (words/tags) which are purely numerical 
- *			this together with a substitution list can be combined to remove dates and times
- *		- force the case of the tag cloud (upper lower, leave alone)
- *		- sort the tag list (ascending, descending, leave alone)
- * 	- All regular expression filtering is performed using preg_grep, preg_replace() 
+ * The initial motivation for this class was to generating data for a TagCloud which 
+ * could be displayed with the yiitagcloud widget.
+ * @link http://www.yiiframework.com/extension/yiitagcloud
  *
- *	Usage example, from a view:
- * @todo refactor example
- *	$this->widget('application.extensions.APCExtensions.APCTagCloud', 
- *		array(
- *				'stringSource' => 'this is a sample string source',
- *				'arraySourceList' => array(
- *						array('this is another', array('example of a source', array('the array contains arrays and', array('strings'))))
- *				),
- *				'activeRecordSourceList' => array(
- *							array('model'=>$sampleActiveRecordModel, 'attribute'=>array('sampleFieldAttribute', 'fieldTwo')),
- *						),
- * 			'blackListFile' => array(
- *					'blackList_alphabet.txt',
- *					'blackList_de.txt',
- *					'blackList_en.txt',
- *					'blackList_umlaut.txt',
- *				), 
- *				'blackList' => array(
- *							array('a', 'an', 'be', 'can', 'the', 'these'),
- *						),
- *				'substitutionList' => array(
- *							'(' => '',
- *					      ')' => '',
- *					      '"' => '',
- *					      "'" => '',
- *					      ':' => '',
- *					      '.' => '',
- *					      '?' => '',
- *					      ',' => '',
- *					      '-' => '',
- *					      '–' => '',
- *					      '/' => '',
- *					      ';' => '',
- *					      '!' => '',
- *					      ),
- *				'removeNumeric' => true,
- *				'forceCase' => 0,
- *				'sortTagList' => 0,
- *		)
- *	); * 
+ * This class can take input from several types of text sources and provides various means 
+ * of filtering thier content (i.e inclusion or exclusion in the final list) as well as some 
+ * basic manipulation of the data.
+ *
+ * Possible Sources
+ * ----------------
+ * The basic source for tokens is the text string. The text strings, however, can be retrieved from 
+ * multiple types. Except for a simple text string all of them can be specified multiple times. 
+ * 	- The simplest form is a single text string.
+ * 	- An array of string values
+ * 	- An array of arrays which resolves to strings at the end node
+ * 	- An active record object accompanied by a query defing which records and columns to use 
+ * 	- A text file
+ * 
+ * Individual tokens are extracted from the sources based on a delimeter which defaults to
+ * space but can be otherwise specified.
+ * 
+ * Filtering Options - Blacklist
+ * -----------------------------
+ * A blacklist is an array of tokens which act as a negative filter. Tokens which have been extraced
+ * from source texts are checked against the blacklists. If there is a match the token will be removed.
+ * This is useful for eliminating sets of words which should not be counted (such as articles 
+ * and conjunctions in english texts. e.g. a, an, the, this, and, or).
+ * Blacklists can be defined in the form of an array, from a file and as a regular expression. 
+ * In addition the blacklist matching comparison can be case insensitive.
+ * 
+ * Filtering Options - Whitelist
+ * -----------------------------
+ * A whitelist is an array of tokens which act as a positive filter. Tokens which have been extracted
+ * from source texts are checked against the whitelists. Only if there is a match will the the 
+ * token be counted. A potnetial use for this is to count the frequency of a specific set of words
+ * in a set of texts. 
+ * Whitelist usage is analagous to blacklists. They can be defined in the form of an array, from 
+ * a file and as a regular expression. In addition whitelist matching comparison can be case insensitive.
+ * 
+ * Filtering Options - Substitution
+ * --------------------------------
+ * A substitutionlist is a list of tokens and associated replacement values. Tokens which have been 
+ * extracted from source texts can be maodified according to multiple substituion lists. The lists are 
+ * specified as key=>value pairs, wher the key is the token to be searched for and the value is the
+ * replacement value. The specification of whitelists is analgouse to blacklists and whitelists with
+ * one major difference. A substituion list in a file must be a PHP snippet which returns a key->value 
+ * array. Substitution lists can include regular expressions and has an opton for case insensitivity.
+ * One possible use for substition is to filter out punction symbols by replacing them with an empty string.
+ * Another possible use would be to remove or replace URLs in a text. 
+ * 
+ * In all three filtering options (blacklist, whitelist and substitutionlist) the case insensitive option 
+ * is ignored for regular expressions, as case insensitive behavior can be specified
+ * in the regular expression itself.
+ *
+ * Additional Options
+ * ------------------
+ * The resulting token list can be modified in four possible ways
+ * - Numerical tokens can be removed, integer values only (including 0)
+ * - The case of the tokens can be forced to upper or lowercase
+ * - The list can be sorted by token (and a sort_locale can be specified)
+ * - The list can be sorted by the token frequency
+ * 
+ * Existing Data
+ * -------------
+ * The assets directory of this extension is where this class looks for blacklists, whitelists andypotter
+ * substitution lists. This can be specified by altering the value of the property $extensionAssetUrl. 
+ * This assets directory should not be confused with the Yii assets directory which contain CSS or 
+ * JavaScript files among others. The assets for YiiWordFrequency (this class) are not required to 
+ * be accesible by the browser. They are only needed by PHP on the server and thus can exist outside
+ * of the webroot directory.
+ * Delivered with this extension are four blacklists and a substitution list. 
+ * blackList_alphabet.txt 	- single charcters of the english alphabet
+ * blackList_de.txt			- German words that should not be included in a tag cloud
+ * blackList_en.txt			- English words that should not be included in a tag cloud
+ * blackList_umlaut.txt		- German special characters, extension to blacklist_alphabet for german texts
+ * punctuation_en.php		- substitution list for elimination punctuation characters
+ * 
+ * Additional examples of blacklists, whitelists and subsitutionlists can be fgound in the tests/fixtures
+ * directory of this extension.
+ * 
+ * Usage
+ * -----
+ * There are four operation phases for using objects of this class
+ * 1) Initialization - create objext and specify all sources, filtering lists and additional options
+ * 2) Accumulate the token for the specified sources
+ * 3) Perform filtering options
+ * 4) Generate the token frequency list 
+ *
+ * After creation and speicification the accumulation must take place. Generation of the list must also 
+ * be done last. The filtering options offer fexibility. They can be formed in differing orders. 
+ * Blacklists, for example, may have a different effect on the list of tokens, if a substitution
+ * was performed beforehand. Dates of the format 12/07/2014 could be eliminated by replacing the slash 
+ * with empty text and then removing umeric items. Or, optionally, they could be removed with regular
+ * expression. In order to accomodate all the possibilities and flexibility for the filtering options.
+ * The filtering methods must be explicitly called for the object. If filtering options have been defined
+ * but the filter is not been called a warning will be given during the generation phase.
+ * Also the filtering methods are chainable so that all the necessary calls to the object can 
+ * be done within a minimal number of code lines.
+ * 
+ * Usage Examples:
+ * ---------------
+ * 
+ * A minimalistic example:
+ * 
+ * $ywf = Yii::createComponent(array('class' => 'YiiWordFrequency'));
+ * $ywf->sourceList = 'This is a test string. This is another test string. Test strings are fun.';
+ * $ywf->accumulateSources();
+ * $frequencyList = $ywf->generateList();
+ * 
+ * An example using Active Records 
+ * (the frequency list can be obtained from the return value of generateList() as above 
+ *  or via the property 
+ * 
+ * $ywf = Yii::createComponent(array('class' => 'YiiWordFrequency'));
+ * $model = new Testdata;
+ * $criteria=new CDbCriteria();
+ * $criteria->addInCondition('id',array(1,2)); 
+ * $criteria->select = "col1, col2, col3";
+ * $ywf->sourceList = array(array($model, $criteria));
+ * $ywf->accumulateSources();
+ * $ywf->generateList();
+ * $frequencyList = $ywf->tagFrequencyList;
+ * 
+ * An example usinge multiple sources
+ * 
+ * $ywf = Yii::createComponent(array('class' => 'YiiWordFrequency'));
+ * $model = new Testdata; // Active Record Model
+ * $criteria=new CDbCriteria(); // Criteria object for determining columns and record sources
+ * $criteria->addInCondition('id',array(1)); 
+ * $criteria->select = "col1";
+ * $this->ywf->sourceList = array(
+ * 	$this->inputFixture[0],
+ * 	$this->inputFixture[1],
+ * 	array($model, $criteria),
+ * );
+ * $this->ywf->accumulateSources();
+ * $this->ywf->generateList();
+ * $frequencyList = $ywf->tagFrequencyList;
+ * 
+ * An example using a blacklist and method chaining 
+ * 
+ * $ywf = Yii::createComponent(array('class' => 'YiiWordFrequency'));
+ * $ywf->sourceList = 'This is a test string. This is another test string. Test strings are fun.';
+ * $ywf->blackList = array('this', 'is');
+ * $ywf->accumulateSources()->runBlackListFilter()->generateList();
+ * $frequencyList = $ywf->tagFrequencyList;
+ * 
+ * An example using a whitelist as well as configuration at object creation 
+ * 
+ * $this->ywf = Yii::createComponent(array(
+ * 	'class' => 'YiiWordFrequency',
+ * 	'sourceList'=> array($this->inputFixture[0]),
+ * 	'whiteListFile' => array('../tests/fixtures/whiteList_test.txt'),
+ * 	'whiteListCaseSensitive' => true,
+ * 	)
+ * );
+ * $this->ywf->accumulateSources()->runWhiteListFilter()->generateList();
+ * print_r($this->ywf->tagFrequencyList);
+ * 
+ * More examples can be found in the file @see tests/unit/YiiWordFrequencyTest.php
  * 
  */
 
 class YiiWordFrequency extends CComponent
 {
-
 	/**
 	* @var unique array of tags and thier frequency count as key-value pair. "tag" => FrequencyCount
 	* The goal of this class is to create this list
@@ -101,7 +193,7 @@ class YiiWordFrequency extends CComponent
 	*    to be accumulated.
 	*/
 	public $sourceList = array();
-		
+	public $sourceFileList = array();	
 	/**
 	* @var string delimiter used for converting(with the explode function) strings to tags 
 	*/
@@ -193,9 +285,20 @@ class YiiWordFrequency extends CComponent
 	public $removeNumeric = false; 
 	
 	/**
-	* @var integer, -1 = sort alphabetical zA -> aA, 0 = natural unchanged order,  sort alphabetical aA -> zZ
-	*/
-	public $sortTagList = 0; 
+	 * Sort token list by token
+	 * @var integer, -1 = sort descending, 0 = natural unchanged order, +1 = sort ascending
+	 * @info Local can be specified as a method parameter @see method generateList()
+	 * @see $sortByFrequency has precedence over $sortByToken
+	 */
+	public $sortByToken = 0; 
+	/**
+	 * Sort token List by frequency
+	 * @var integer, -1 = descending, 0 = natural unchanged order, +1 = ascending
+	 * $sortByFrequency has precedence over $sortByToken. It it is specified (i.e. value <> 0) then 
+	 * the $sortByToken is used only as a second order sort specification to sort by token when
+	 * the frequencies are equal.
+	 */
+	public $sortByFrequency = 0; 
 	 
 	/**
 	* @var string the URL for this extensions assets directory
@@ -285,12 +388,24 @@ class YiiWordFrequency extends CComponent
 		}
 	}
 	
+	protected function accumulateFromStringFile() {
+		foreach ($this->sourceFileList as $v) {
+			if (file_exists($v)) {
+				$this->accumulateFromArrays(file($v, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES));
+			} else {
+				throw new CException(Yii::t('yii', 'Token Source File "{file}" not found in {method}.',
+											array('{method}'=>__METHOD__, '{file}'=>$v)));
+			}
+		}
+	}
+	
 	/**
 	 * Calls all functions to import word/tags from all import sources: string, array list, avtive records
 	 * The three types of sources are distinguished by thier types: string, array, object
 	 */
 	public function accumulateSources() {
 		$this->accumulateVisited = true;
+		$this->accumulateFromStringFile();
 		if (is_string($this->sourceList)) {
 			$this->addStringToTagList($this->sourceList);
 		} else {
@@ -584,7 +699,6 @@ class YiiWordFrequency extends CComponent
 	 * the comparison is case insensitive
 	 * @param array $inputList, list of words/tabs which are to compared and removed if found to be numeric
 	 * @return array $inputList stripped of items which are numeric 
-	 * @todo need to refine logic to also remove "0"
 	 */
 	protected function removeNumericItems($inputList) {
 		return array_filter($inputList, function($arg) { return !(intval($arg) > 0 or $arg == '0'); });
@@ -632,7 +746,7 @@ class YiiWordFrequency extends CComponent
 	 * Performs all functions necessary to import tags from all import sources as well as perform
 	 * all subsequent modifications
 	 * The result is that the array $this->frequencyList is created which is then used to display the tag cloud
-	 * @toDo Locale
+	 * @see http://stackoverflow.com/questions/2282013/php-array-multiple-sort-by-value-then-by-key 
 	 */
 	public function generateList($locale = false) {
 		$this->issueUsageWarnings();
@@ -647,10 +761,27 @@ class YiiWordFrequency extends CComponent
 		if ($locale) {
 			setlocale(LC_COLLATE, $locale);
 		}
-		if ($this->sortTagList > 0) {
-			ksort($this->tagFrequencyList, SORT_LOCALE_STRING);
-		} elseif ($this->sortTagList < 0) {
-			krsort($this->tagFrequencyList);
+		
+		if ($this->sortByFrequency == 0) {
+			if ($this->sortByToken > 0) {
+				ksort($this->tagFrequencyList, SORT_LOCALE_STRING);
+			} elseif ($this->sortByToken < 0) {
+				krsort($this->tagFrequencyList, SORT_LOCALE_STRING);
+			}
+		} else {
+			if ($this->sortByFrequency > 0) {
+				array_multisort(
+					array_values($this->tagFrequencyList), SORT_ASC, 
+					array_keys($this->tagFrequencyList), ($this->sortByToken<0 ? SORT_DESC : SORT_ASC), SORT_LOCALE_STRING,
+					$this->tagFrequencyList);
+			} elseif ($this->sortByFrequency < 0) {
+				array_multisort(
+					array_values($this->tagFrequencyList), SORT_DESC, 
+					array_keys($this->tagFrequencyList), ($this->sortByToken<0 ? SORT_DESC : SORT_ASC), SORT_LOCALE_STRING, 
+					$this->tagFrequencyList);
+			}
 		}
+		
+		return $this->tagFrequencyList;
 	}
 }

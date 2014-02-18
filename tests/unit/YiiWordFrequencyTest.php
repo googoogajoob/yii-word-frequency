@@ -26,9 +26,9 @@ class YiiWordFrequencyTest extends CDbTestCase {
 		array('This' => 2, 'is' => 2, 'a' => 2, 'test' => 2, 'string.' => 1, 'string' => 1, 'second'=> 1,),
 		// 1 - double count
 		array('This' => 4, 'is' => 4, 'a' => 4, 'test' => 4, 'string.' => 2, 'string' => 2, 'second'=> 2,),
-		// 2 - double count sorted ascending
+		// 2 - double count sorted ascending by token
 		array('This' => 4, 'a' => 4,'is' => 4,'second'=> 2,'string' => 2,'string.' => 2,'test' => 4,),
-		// 3 - double count sorted descending
+		// 3 - double count sorted descending by token
 		array('test' => 4,'string.' => 2,'string' => 2,'second'=> 2,'is' => 4,'a' => 4,'This' => 4,),
 		// 4 - triple count
 		array('This' => 6, 'is' => 6, 'a' => 6, 'test' => 6, 'string.' => 3, 'string' => 3, 'second'=> 3,),
@@ -66,6 +66,14 @@ class YiiWordFrequencyTest extends CDbTestCase {
 		array('XXXhis' => 2, 'is' => 2, 'a' => 2, 'XXXesXXX' => 2, 'sXXXring' => 2, 'second'=> 1,),
 		// 21 - sorting with locale DE
 		array('angel' => 1, 'über' => 1, 'use' => 1, 'zend' => 1),
+		// 22 - double count sorted ascending by frequency, token asc
+		array('second' => 2,'string' => 2,'string.'=> 2,'This' => 4,'a' => 4,'is' => 4,'test' => 4,),
+		// 23 - double count sorted ascending by frequency, token desc
+		array('string.' => 2,'string' => 2,'second'=> 2,'test' => 4,'is' => 4,'a' => 4,'This' => 4,),
+		// 24 - double count sorted descending by frequency token asc 
+		array('This' => 4, 'a' => 4,'is' => 4,'test' => 4,'second'=> 2,'string' => 2,'string.' => 2,),
+		// 25 - double count sorted descending by frequency token desc
+		array('test' => 4, 'is' => 4,'a' => 4,'This' => 4,'string.'=> 2,'string' => 2,'second' => 2,),
 	);
 	
 	public function setUp() {
@@ -86,6 +94,18 @@ class YiiWordFrequencyTest extends CDbTestCase {
 		$this->ywf->generateList();
 		$this->assertEquals($this->outputFixture[0], $this->ywf->tagFrequencyList);
 	}
+
+	public function testStringFileInput() {
+		$path = Yii::app()->basePath . '/tests/fixtures/';
+		$this->ywf->sourceFileList = array(
+				$path . 'fileTestData_1.txt',
+				$path . 'fileTestData_2.txt'
+			);
+		$this->ywf->accumulateSources();
+		$this->ywf->generateList();
+		$this->assertEquals($this->outputFixture[0], $this->ywf->tagFrequencyList);
+	}
+
 
 	public function testArrayInput() {
 		$this->ywf->sourceList = array($this->inputFixture[1]);
@@ -143,7 +163,6 @@ class YiiWordFrequencyTest extends CDbTestCase {
 		$criteria=new CDbCriteria();
 		$criteria->addInCondition('id',array(1)); 
 		$criteria->select = "col1";
-		$this->ywf->sourceList = array(array($model, $criteria));
 		$this->ywf->sourceList = array(
 			$this->inputFixture[0],
 			$this->inputFixture[1],
@@ -172,7 +191,7 @@ class YiiWordFrequencyTest extends CDbTestCase {
 			$this->inputFixture[0],
 			$this->inputFixture[1],
 		);
-		$this->ywf->sortTagList=rand(1, getrandmax());
+		$this->ywf->sortByToken=rand(1, getrandmax());
 		$this->ywf->accumulateSources();
 		$this->ywf->generateList();
 		$this->assertArrayEquals($this->outputFixture[2], $this->ywf->tagFrequencyList);
@@ -183,10 +202,58 @@ class YiiWordFrequencyTest extends CDbTestCase {
 			$this->inputFixture[0],
 			$this->inputFixture[1],
 		);
-		$this->ywf->sortTagList=rand(1, getrandmax())*-1;
+		$this->ywf->sortByToken=rand(1, getrandmax())*-1;
 		$this->ywf->accumulateSources();
 		$this->ywf->generateList();
 		$this->assertArrayEquals($this->outputFixture[3], $this->ywf->tagFrequencyList);
+	}
+	
+	public function testFreqSortingAscTokenAsc() {
+		$this->ywf->sourceList = array(
+			$this->inputFixture[0],
+			$this->inputFixture[1],
+		);
+		$this->ywf->sortByToken=1;
+		$this->ywf->sortByFrequency=rand(1, getrandmax());
+		$this->ywf->accumulateSources();
+		$this->ywf->generateList();
+		$this->assertArrayEquals($this->outputFixture[22], $this->ywf->tagFrequencyList);
+	}
+
+	public function testFreqSortingAscTokenDesc() {
+		$this->ywf->sourceList = array(
+			$this->inputFixture[0],
+			$this->inputFixture[1],
+		);
+		$this->ywf->sortByToken=-1;
+		$this->ywf->sortByFrequency=rand(1, getrandmax());
+		$this->ywf->accumulateSources();
+		$this->ywf->generateList();
+		$this->assertArrayEquals($this->outputFixture[23], $this->ywf->tagFrequencyList);
+	}
+
+	public function testFreqSortingDescTokenAsc() {
+		$this->ywf->sourceList = array(
+			$this->inputFixture[0],
+			$this->inputFixture[1],
+		);
+		$this->ywf->sortByToken=1;
+		$this->ywf->sortByFrequency=rand(1, getrandmax())*-1;
+		$this->ywf->accumulateSources();
+		$this->ywf->generateList();
+		$this->assertArrayEquals($this->outputFixture[24], $this->ywf->tagFrequencyList);
+	}
+
+	public function testFreqSortingDescTokenDesc() {
+		$this->ywf->sourceList = array(
+			$this->inputFixture[0],
+			$this->inputFixture[1],
+		);
+		$this->ywf->sortByToken=-1;
+		$this->ywf->sortByFrequency=rand(1, getrandmax())*-1;
+		$this->ywf->accumulateSources();
+		$this->ywf->generateList();
+		$this->assertArrayEquals($this->outputFixture[25], $this->ywf->tagFrequencyList);
 	}
 
 	public function testExplosion() {
@@ -270,7 +337,9 @@ class YiiWordFrequencyTest extends CDbTestCase {
 	
 	public function testBlackListRegexpFile() {
 		$this->ywf->sourceList = array($this->inputFixture[0]);
-		$this->ywf->blackListRegularExpressionFile = array('regexp_test_1.txt', 'regexp_test_2.txt');
+		$this->ywf->blackListRegularExpressionFile = array(
+			'../tests/fixtures/regexp_test_1.txt', 
+			'../tests/fixtures/regexp_test_2.txt');
 		$this->ywf->accumulateSources();
 		$this->ywf->runBlackListFilter();
 		$this->ywf->generateList();
@@ -298,7 +367,7 @@ class YiiWordFrequencyTest extends CDbTestCase {
 
 	public function testWhiteListFile() {
 		$this->ywf->sourceList = array($this->inputFixture[0]);
-		$this->ywf->whiteListFile = array('whiteList_test.txt');
+		$this->ywf->whiteListFile = array('../tests/fixtures/whiteList_test.txt');
 		$this->ywf->accumulateSources();
 		$this->ywf->runWhiteListFilter();
 		$this->ywf->generateList();
@@ -307,7 +376,7 @@ class YiiWordFrequencyTest extends CDbTestCase {
 
 	public function testWhiteListFileCaseSensitive() {
 		$this->ywf->sourceList = array($this->inputFixture[0]);
-		$this->ywf->whiteListFile = array('whiteList_test.txt');
+		$this->ywf->whiteListFile = array('../tests/fixtures/whiteList_test.txt');
 		$this->ywf->whiteListCaseSensitive = true;
 		$this->ywf->accumulateSources();
 		$this->ywf->runWhiteListFilter();
@@ -335,7 +404,9 @@ class YiiWordFrequencyTest extends CDbTestCase {
 
 	public function testWhiteListRegexpFile() {
 		$this->ywf->sourceList = array($this->inputFixture[0]);
-		$this->ywf->whiteListRegularExpressionFile = array('regexp_test_1.txt', 'regexp_test_2.txt');
+		$this->ywf->whiteListRegularExpressionFile = array(
+			'../tests/fixtures/regexp_test_1.txt', 
+			'../tests/fixtures/regexp_test_2.txt');
 		$this->ywf->accumulateSources();
 		$this->ywf->runWhiteListFilter();
 		$this->ywf->generateList();
@@ -362,7 +433,7 @@ class YiiWordFrequencyTest extends CDbTestCase {
 
 	public function testSubstitutionListFileNoCase() {
 		$this->ywf->sourceList = array($this->inputFixture[0]);
-		$this->ywf->substitutionListFile = array('punctuation_en.php', 'testcase.php');
+		$this->ywf->substitutionListFile = array('punctuation_en.php', '../tests/fixtures/testcase.php');
 		$this->ywf->substitutionListCaseSensitive = true;
 		$this->ywf->accumulateSources();
 		$this->ywf->runSubstitutionListFilter();
@@ -381,7 +452,9 @@ class YiiWordFrequencyTest extends CDbTestCase {
 
 	public function testSubstitutionListRegularExpressionFile() {
 		$this->ywf->sourceList = array($this->inputFixture[0]);
-		$this->ywf->substitutionListRegularExpressionFile = array('testcase_regexp_1.php', 'testcase_regexp_2.php');
+		$this->ywf->substitutionListRegularExpressionFile = array(
+			'../tests/fixtures/testcase_regexp_1.php', 
+			'../tests/fixtures/testcase_regexp_2.php');
 		$this->ywf->accumulateSources();
 		$this->ywf->runSubstitutionListFilter();
 		$this->ywf->generateList();
@@ -405,7 +478,9 @@ class YiiWordFrequencyTest extends CDbTestCase {
 
 	public function testMethodChaining3() {
 		$this->ywf->sourceList = array($this->inputFixture[0]);
-		$this->ywf->substitutionListRegularExpressionFile = array('testcase_regexp_1.php', 'testcase_regexp_2.php');
+		$this->ywf->substitutionListRegularExpressionFile = array(
+			'../tests/fixtures/testcase_regexp_1.php', 
+			'../tests/fixtures/testcase_regexp_2.php');
 		$this->ywf->accumulateSources()->runSubstitutionListFilter()->generateList();
 		$this->assertEquals($this->outputFixture[20], $this->ywf->tagFrequencyList);
 	}
@@ -415,7 +490,7 @@ class YiiWordFrequencyTest extends CDbTestCase {
 		$this->ywf = Yii::createComponent(array(
 			'class' => 'YiiWordFrequency',
 			'sourceList'=> array($this->inputFixture[0]),
-			'whiteListFile' => array('whiteList_test.txt'),
+			'whiteListFile' => array('../tests/fixtures/whiteList_test.txt'),
 			'whiteListCaseSensitive' => true,
 			)
 		);
@@ -487,7 +562,7 @@ class YiiWordFrequencyTest extends CDbTestCase {
 	
 	public function testLocaleSorting() {
 		$this->ywf->sourceList = array($this->inputFixture[4]);
-		$this->ywf->sortTagList = 1;
+		$this->ywf->sortByToken = 1;
 		$this->ywf->accumulateSources()->generateList(array('de_DE@euro', 'de_DE', 'de'));
 		$this->assertArrayEquals($this->outputFixture[21], $this->ywf->tagFrequencyList);
 	}
