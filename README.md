@@ -9,8 +9,8 @@ operations into one convenient class.
 Place the contents of the 'yii-word-frequency' extension (extracted from the zip file 
 or obtained via Github) into the extensions folder extensions/yii-word-frequency 
 
-Add "ext.yii-word-frequency" to the import array in config/main.php
-	// preloading 'log' component
+Add 'ext.yii-word-frequency" to the import array in config/main.php
+`	// preloading 'log' component
 	'preload'=>array('log'),
 
 	// autoloading model and component classes
@@ -18,7 +18,7 @@ Add "ext.yii-word-frequency" to the import array in config/main.php
 		'application.models.*',
 		'application.components.*',
 		'ext.yii-word-frequency.*', 
-	),
+	),`
 
 ##Usage
 ###A minimalistic example
