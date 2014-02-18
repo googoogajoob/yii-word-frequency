@@ -10,13 +10,18 @@ Place the contents of the 'yii-word-frequency' extension (extracted from the zip
 or obtained via Github) into the extensions folder extensions/yii-word-frequency 
 
 Add "ext.yii-word-frequency" to the import array in config/main.php
-'''
+	return array(
+	'basePath'=>dirname(__FILE__).DIRECTORY_SEPARATOR.'..',
+	
+	// preloading 'log' component
+	'preload'=>array('log'),
+
+	// autoloading model and component classes
 	'import'=>array(
-		...
+		'application.models.*',
+		'application.components.*',
 		'ext.yii-word-frequency.*', 
-		...
 	),
-'''
 
 ##Usage
 ###A minimalistic example
