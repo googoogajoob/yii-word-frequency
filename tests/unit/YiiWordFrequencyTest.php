@@ -92,7 +92,7 @@ class YiiWordFrequencyTest extends CDbTestCase {
 		$this->ywf->sourceList = $this->inputFixture[0];
 		$this->ywf->accumulateSources();
 		$this->ywf->generateList();
-		$this->assertEquals($this->outputFixture[0], $this->ywf->tagFrequencyList);
+		$this->assertEquals($this->outputFixture[0], $this->ywf->tokenFrequencyList);
 	}
 
 	public function testStringFileInput() {
@@ -103,7 +103,7 @@ class YiiWordFrequencyTest extends CDbTestCase {
 			);
 		$this->ywf->accumulateSources();
 		$this->ywf->generateList();
-		$this->assertEquals($this->outputFixture[0], $this->ywf->tagFrequencyList);
+		$this->assertEquals($this->outputFixture[0], $this->ywf->tokenFrequencyList);
 	}
 
 
@@ -111,7 +111,7 @@ class YiiWordFrequencyTest extends CDbTestCase {
 		$this->ywf->sourceList = array($this->inputFixture[1]);
 		$this->ywf->accumulateSources();
 		$this->ywf->generateList();
-		$this->assertEquals($this->outputFixture[0], $this->ywf->tagFrequencyList);
+		$this->assertEquals($this->outputFixture[0], $this->ywf->tokenFrequencyList);
 	}
 
 	public function testActiveRecordInput1() {
@@ -122,7 +122,7 @@ class YiiWordFrequencyTest extends CDbTestCase {
 		$this->ywf->sourceList = array(array($model, $criteria));
 		$this->ywf->accumulateSources();
 		$this->ywf->generateList();
-		$this->assertEquals($this->outputFixture[0], $this->ywf->tagFrequencyList);
+		$this->assertEquals($this->outputFixture[0], $this->ywf->tokenFrequencyList);
 	}
 
 	public function testActiveRecordInput2() {
@@ -133,7 +133,7 @@ class YiiWordFrequencyTest extends CDbTestCase {
 		$this->ywf->sourceList = array(array($model, $criteria));
 		$this->ywf->accumulateSources();
 		$this->ywf->generateList();
-		$this->assertEquals($this->outputFixture[0], $this->ywf->tagFrequencyList);
+		$this->assertEquals($this->outputFixture[0], $this->ywf->tokenFrequencyList);
 	}
 
 	public function testActiveRecordInput3() {
@@ -144,7 +144,7 @@ class YiiWordFrequencyTest extends CDbTestCase {
 		$this->ywf->sourceList = array(array($model, $criteria));
 		$this->ywf->accumulateSources();
 		$this->ywf->generateList();
-		$this->assertEquals($this->outputFixture[0], $this->ywf->tagFrequencyList);
+		$this->assertEquals($this->outputFixture[0], $this->ywf->tokenFrequencyList);
 	}
 
 	public function testActiveRecordInput4() {
@@ -155,7 +155,7 @@ class YiiWordFrequencyTest extends CDbTestCase {
 		$this->ywf->sourceList = array(array($model, $criteria));
 		$this->ywf->accumulateSources();
 		$this->ywf->generateList();
-		$this->assertEquals($this->outputFixture[1], $this->ywf->tagFrequencyList);
+		$this->assertEquals($this->outputFixture[1], $this->ywf->tokenFrequencyList);
 	}
 
 	public function testAllInputSources() {
@@ -170,7 +170,7 @@ class YiiWordFrequencyTest extends CDbTestCase {
 		);
 		$this->ywf->accumulateSources();
 		$this->ywf->generateList();
-		$this->assertEquals($this->outputFixture[4], $this->ywf->tagFrequencyList);
+		$this->assertEquals($this->outputFixture[4], $this->ywf->tokenFrequencyList);
 	}
 
 	public function testAllAddMethods() {
@@ -183,7 +183,7 @@ class YiiWordFrequencyTest extends CDbTestCase {
 		$this->ywf->addDbSource($model, $criteria);
 		$this->ywf->accumulateSources();
 		$this->ywf->generateList();
-		$this->assertEquals($this->outputFixture[4], $this->ywf->tagFrequencyList);
+		$this->assertEquals($this->outputFixture[4], $this->ywf->tokenFrequencyList);
 	}
 
 	public function testSortingAsc() {
@@ -194,7 +194,7 @@ class YiiWordFrequencyTest extends CDbTestCase {
 		$this->ywf->sortByToken=rand(1, getrandmax());
 		$this->ywf->accumulateSources();
 		$this->ywf->generateList();
-		$this->assertArrayEquals($this->outputFixture[2], $this->ywf->tagFrequencyList);
+		$this->assertArrayEquals($this->outputFixture[2], $this->ywf->tokenFrequencyList);
 	}
 
 	public function testSortingDesc() {
@@ -205,7 +205,7 @@ class YiiWordFrequencyTest extends CDbTestCase {
 		$this->ywf->sortByToken=rand(1, getrandmax())*-1;
 		$this->ywf->accumulateSources();
 		$this->ywf->generateList();
-		$this->assertArrayEquals($this->outputFixture[3], $this->ywf->tagFrequencyList);
+		$this->assertArrayEquals($this->outputFixture[3], $this->ywf->tokenFrequencyList);
 	}
 	
 	public function testFreqSortingAscTokenAsc() {
@@ -217,7 +217,7 @@ class YiiWordFrequencyTest extends CDbTestCase {
 		$this->ywf->sortByFrequency=rand(1, getrandmax());
 		$this->ywf->accumulateSources();
 		$this->ywf->generateList();
-		$this->assertArrayEquals($this->outputFixture[22], $this->ywf->tagFrequencyList);
+		$this->assertArrayEquals($this->outputFixture[22], $this->ywf->tokenFrequencyList);
 	}
 
 	public function testFreqSortingAscTokenDesc() {
@@ -229,7 +229,7 @@ class YiiWordFrequencyTest extends CDbTestCase {
 		$this->ywf->sortByFrequency=rand(1, getrandmax());
 		$this->ywf->accumulateSources();
 		$this->ywf->generateList();
-		$this->assertArrayEquals($this->outputFixture[23], $this->ywf->tagFrequencyList);
+		$this->assertArrayEquals($this->outputFixture[23], $this->ywf->tokenFrequencyList);
 	}
 
 	public function testFreqSortingDescTokenAsc() {
@@ -241,7 +241,7 @@ class YiiWordFrequencyTest extends CDbTestCase {
 		$this->ywf->sortByFrequency=rand(1, getrandmax())*-1;
 		$this->ywf->accumulateSources();
 		$this->ywf->generateList();
-		$this->assertArrayEquals($this->outputFixture[24], $this->ywf->tagFrequencyList);
+		$this->assertArrayEquals($this->outputFixture[24], $this->ywf->tokenFrequencyList);
 	}
 
 	public function testFreqSortingDescTokenDesc() {
@@ -253,7 +253,7 @@ class YiiWordFrequencyTest extends CDbTestCase {
 		$this->ywf->sortByFrequency=rand(1, getrandmax())*-1;
 		$this->ywf->accumulateSources();
 		$this->ywf->generateList();
-		$this->assertArrayEquals($this->outputFixture[25], $this->ywf->tagFrequencyList);
+		$this->assertArrayEquals($this->outputFixture[25], $this->ywf->tokenFrequencyList);
 	}
 
 	public function testExplosion() {
@@ -261,7 +261,7 @@ class YiiWordFrequencyTest extends CDbTestCase {
 		$this->ywf->sourceList = array($this->inputFixture[2]);
 		$this->ywf->accumulateSources();
 		$this->ywf->generateList();
-		$this->assertEquals($this->outputFixture[0], $this->ywf->tagFrequencyList);
+		$this->assertEquals($this->outputFixture[0], $this->ywf->tokenFrequencyList);
 	}
 
 	public function testLowerCase() {
@@ -269,7 +269,7 @@ class YiiWordFrequencyTest extends CDbTestCase {
 		$this->ywf->forceCase = rand(1, getrandmax())*-1;
 		$this->ywf->accumulateSources();
 		$this->ywf->generateList();
-		$this->assertEquals($this->outputFixture[5], $this->ywf->tagFrequencyList);
+		$this->assertEquals($this->outputFixture[5], $this->ywf->tokenFrequencyList);
 	}
 
 	public function testUpperCase() {
@@ -277,7 +277,7 @@ class YiiWordFrequencyTest extends CDbTestCase {
 		$this->ywf->forceCase = rand(1, getrandmax());
 		$this->ywf->accumulateSources();
 		$this->ywf->generateList();
-		$this->assertEquals($this->outputFixture[6], $this->ywf->tagFrequencyList);
+		$this->assertEquals($this->outputFixture[6], $this->ywf->tokenFrequencyList);
 	}
 
 	public function testRemoveNumeric() {
@@ -285,7 +285,7 @@ class YiiWordFrequencyTest extends CDbTestCase {
 		$this->ywf->removeNumeric = true;
 		$this->ywf->accumulateSources();
 		$this->ywf->generateList();
-		$this->assertEquals($this->outputFixture[0], $this->ywf->tagFrequencyList);
+		$this->assertEquals($this->outputFixture[0], $this->ywf->tokenFrequencyList);
 	}
 
 	public function testBlackList() {
@@ -294,7 +294,7 @@ class YiiWordFrequencyTest extends CDbTestCase {
 		$this->ywf->accumulateSources();
 		$this->ywf->runBlackListFilter();
 		$this->ywf->generateList();
-		$this->assertEquals($this->outputFixture[7], $this->ywf->tagFrequencyList);
+		$this->assertEquals($this->outputFixture[7], $this->ywf->tokenFrequencyList);
 	}
 
 	public function testBlackListCaseSensitive() {
@@ -304,7 +304,7 @@ class YiiWordFrequencyTest extends CDbTestCase {
 		$this->ywf->accumulateSources();
 		$this->ywf->runBlackListFilter();
 		$this->ywf->generateList();
-		$this->assertEquals($this->outputFixture[8], $this->ywf->tagFrequencyList);
+		$this->assertEquals($this->outputFixture[8], $this->ywf->tokenFrequencyList);
 	}
 
 	public function testBlackListFile() {
@@ -313,7 +313,7 @@ class YiiWordFrequencyTest extends CDbTestCase {
 		$this->ywf->accumulateSources();
 		$this->ywf->runBlackListFilter();
 		$this->ywf->generateList();
-		$this->assertEquals($this->outputFixture[9], $this->ywf->tagFrequencyList);
+		$this->assertEquals($this->outputFixture[9], $this->ywf->tokenFrequencyList);
 	}
 
 	public function testBlackListFileCaseSensitive() {
@@ -323,7 +323,7 @@ class YiiWordFrequencyTest extends CDbTestCase {
 		$this->ywf->accumulateSources();
 		$this->ywf->runBlackListFilter();
 		$this->ywf->generateList();
-		$this->assertEquals($this->outputFixture[10], $this->ywf->tagFrequencyList);
+		$this->assertEquals($this->outputFixture[10], $this->ywf->tokenFrequencyList);
 	}
 
 	public function testBlackListRegexp() {
@@ -332,7 +332,7 @@ class YiiWordFrequencyTest extends CDbTestCase {
 		$this->ywf->accumulateSources();
 		$this->ywf->runBlackListFilter();
 		$this->ywf->generateList();
-		$this->assertEquals($this->outputFixture[11], $this->ywf->tagFrequencyList);
+		$this->assertEquals($this->outputFixture[11], $this->ywf->tokenFrequencyList);
 	}
 	
 	public function testBlackListRegexpFile() {
@@ -343,7 +343,7 @@ class YiiWordFrequencyTest extends CDbTestCase {
 		$this->ywf->accumulateSources();
 		$this->ywf->runBlackListFilter();
 		$this->ywf->generateList();
-		$this->assertEquals($this->outputFixture[12], $this->ywf->tagFrequencyList);
+		$this->assertEquals($this->outputFixture[12], $this->ywf->tokenFrequencyList);
 	}
 
 	public function testWhiteList() {
@@ -352,7 +352,7 @@ class YiiWordFrequencyTest extends CDbTestCase {
 		$this->ywf->accumulateSources();
 		$this->ywf->runWhiteListFilter();
 		$this->ywf->generateList();
-		$this->assertEquals($this->outputFixture[13], $this->ywf->tagFrequencyList);
+		$this->assertEquals($this->outputFixture[13], $this->ywf->tokenFrequencyList);
 	}
 
 	public function testWhiteListCaseSensitive() {
@@ -362,7 +362,7 @@ class YiiWordFrequencyTest extends CDbTestCase {
 		$this->ywf->accumulateSources();
 		$this->ywf->runWhiteListFilter();
 		$this->ywf->generateList();
-		$this->assertEquals($this->outputFixture[14], $this->ywf->tagFrequencyList);
+		$this->assertEquals($this->outputFixture[14], $this->ywf->tokenFrequencyList);
 	}
 
 	public function testWhiteListFile() {
@@ -371,7 +371,7 @@ class YiiWordFrequencyTest extends CDbTestCase {
 		$this->ywf->accumulateSources();
 		$this->ywf->runWhiteListFilter();
 		$this->ywf->generateList();
-		$this->assertEquals($this->outputFixture[13], $this->ywf->tagFrequencyList);
+		$this->assertEquals($this->outputFixture[13], $this->ywf->tokenFrequencyList);
 	}
 
 	public function testWhiteListFileCaseSensitive() {
@@ -381,7 +381,7 @@ class YiiWordFrequencyTest extends CDbTestCase {
 		$this->ywf->accumulateSources();
 		$this->ywf->runWhiteListFilter();
 		$this->ywf->generateList();
-		$this->assertEquals($this->outputFixture[14], $this->ywf->tagFrequencyList);
+		$this->assertEquals($this->outputFixture[14], $this->ywf->tokenFrequencyList);
 	}
 
 	public function testWhiteListRegexp() {
@@ -390,7 +390,7 @@ class YiiWordFrequencyTest extends CDbTestCase {
 		$this->ywf->accumulateSources();
 		$this->ywf->runWhiteListFilter();
 		$this->ywf->generateList();
-		$this->assertEquals($this->outputFixture[15], $this->ywf->tagFrequencyList);
+		$this->assertEquals($this->outputFixture[15], $this->ywf->tokenFrequencyList);
 	}
 
 	public function testWhiteListRegexp2() {
@@ -399,7 +399,7 @@ class YiiWordFrequencyTest extends CDbTestCase {
 		$this->ywf->accumulateSources();
 		$this->ywf->runWhiteListFilter();
 		$this->ywf->generateList();
-		$this->assertEquals($this->outputFixture[17], $this->ywf->tagFrequencyList);
+		$this->assertEquals($this->outputFixture[17], $this->ywf->tokenFrequencyList);
 	}
 
 	public function testWhiteListRegexpFile() {
@@ -410,7 +410,7 @@ class YiiWordFrequencyTest extends CDbTestCase {
 		$this->ywf->accumulateSources();
 		$this->ywf->runWhiteListFilter();
 		$this->ywf->generateList();
-		$this->assertEquals($this->outputFixture[16], $this->ywf->tagFrequencyList);
+		$this->assertEquals($this->outputFixture[16], $this->ywf->tokenFrequencyList);
 	}
 
 	public function testSubstitutionList() {
@@ -419,7 +419,7 @@ class YiiWordFrequencyTest extends CDbTestCase {
 		$this->ywf->accumulateSources();
 		$this->ywf->runSubstitutionListFilter();
 		$this->ywf->generateList();
-		$this->assertEquals($this->outputFixture[18], $this->ywf->tagFrequencyList);
+		$this->assertEquals($this->outputFixture[18], $this->ywf->tokenFrequencyList);
 	}
 
 	public function testSubstitutionListFile() {
@@ -428,7 +428,7 @@ class YiiWordFrequencyTest extends CDbTestCase {
 		$this->ywf->accumulateSources();
 		$this->ywf->runSubstitutionListFilter();
 		$this->ywf->generateList();
-		$this->assertEquals($this->outputFixture[19], $this->ywf->tagFrequencyList);
+		$this->assertEquals($this->outputFixture[19], $this->ywf->tokenFrequencyList);
 	}
 
 	public function testSubstitutionListFileNoCase() {
@@ -438,7 +438,7 @@ class YiiWordFrequencyTest extends CDbTestCase {
 		$this->ywf->accumulateSources();
 		$this->ywf->runSubstitutionListFilter();
 		$this->ywf->generateList();
-		$this->assertEquals($this->outputFixture[20], $this->ywf->tagFrequencyList);
+		$this->assertEquals($this->outputFixture[20], $this->ywf->tokenFrequencyList);
 	}
 
 	public function testSubstitutionListRegularExpression() {
@@ -447,7 +447,7 @@ class YiiWordFrequencyTest extends CDbTestCase {
 		$this->ywf->accumulateSources();
 		$this->ywf->runSubstitutionListFilter();
 		$this->ywf->generateList();
-		$this->assertEquals($this->outputFixture[20], $this->ywf->tagFrequencyList);
+		$this->assertEquals($this->outputFixture[20], $this->ywf->tokenFrequencyList);
 	}
 
 	public function testSubstitutionListRegularExpressionFile() {
@@ -458,7 +458,7 @@ class YiiWordFrequencyTest extends CDbTestCase {
 		$this->ywf->accumulateSources();
 		$this->ywf->runSubstitutionListFilter();
 		$this->ywf->generateList();
-		$this->assertEquals($this->outputFixture[20], $this->ywf->tagFrequencyList);
+		$this->assertEquals($this->outputFixture[20], $this->ywf->tokenFrequencyList);
 	}
 
 
@@ -466,14 +466,14 @@ class YiiWordFrequencyTest extends CDbTestCase {
 		$this->ywf->sourceList = array($this->inputFixture[0]);
 		$this->ywf->blackList = array('this', 'is');
 		$this->ywf->accumulateSources()->runBlackListFilter()->generateList();
-		$this->assertEquals($this->outputFixture[7], $this->ywf->tagFrequencyList);
+		$this->assertEquals($this->outputFixture[7], $this->ywf->tokenFrequencyList);
 	}
 
 	public function testMethodChaining2() {
 		$this->ywf->sourceList = array($this->inputFixture[0]);
 		$this->ywf->whiteListRegularExpression = array('#T#', '#is#', '#^[Tt]#');
 		$this->ywf->accumulateSources()->runWhiteListFilter()->generateList();
-		$this->assertEquals($this->outputFixture[17], $this->ywf->tagFrequencyList);
+		$this->assertEquals($this->outputFixture[17], $this->ywf->tokenFrequencyList);
 	}
 
 	public function testMethodChaining3() {
@@ -482,7 +482,7 @@ class YiiWordFrequencyTest extends CDbTestCase {
 			'../tests/fixtures/testcase_regexp_1.php', 
 			'../tests/fixtures/testcase_regexp_2.php');
 		$this->ywf->accumulateSources()->runSubstitutionListFilter()->generateList();
-		$this->assertEquals($this->outputFixture[20], $this->ywf->tagFrequencyList);
+		$this->assertEquals($this->outputFixture[20], $this->ywf->tokenFrequencyList);
 	}
 
 	public function testInitializationAtCreate() {
@@ -495,7 +495,7 @@ class YiiWordFrequencyTest extends CDbTestCase {
 			)
 		);
 		$this->ywf->accumulateSources()->runWhiteListFilter()->generateList();
-		$this->assertEquals($this->outputFixture[14], $this->ywf->tagFrequencyList);
+		$this->assertEquals($this->outputFixture[14], $this->ywf->tokenFrequencyList);
 	}
 
 	public function testBadSourceWarning1() {
@@ -564,7 +564,7 @@ class YiiWordFrequencyTest extends CDbTestCase {
 		$this->ywf->sourceList = array($this->inputFixture[4]);
 		$this->ywf->sortByToken = 1;
 		$this->ywf->accumulateSources()->generateList(array('de_DE@euro', 'de_DE', 'de'));
-		$this->assertArrayEquals($this->outputFixture[21], $this->ywf->tagFrequencyList);
+		$this->assertArrayEquals($this->outputFixture[21], $this->ywf->tokenFrequencyList);
 	}
 	
 	public function tearDown() {

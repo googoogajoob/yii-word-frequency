@@ -172,43 +172,46 @@
 class YiiWordFrequency extends CComponent
 {
 	/**
-	* @var unique array of tags and thier frequency count as key-value pair. "tag" => FrequencyCount
-	* The goal of this class is to create this list
-	*/
-	public $tagFrequencyList = array();
+	 * @var unique array of tokens and thier frequency count as key=>value pair. "token" => FrequencyCount
+	 * The goal of this class is to create this list
+	 */
+	public $tokenFrequencyList = array();
 
 	/**
-	* @var NON-Unique array of individual tags that have been accumulated form all sources
-	*/
+	 * @var NON-unique array of individual tokens that have been accumulated from all sources
+	 */
 	protected $internalTagList = array();
 
 	/**
-	* @var a one-dimensional array containing references to text sources
-	* Each array element ultimately refers to a text string which will be parsed into the frequency list
-	* The elements of this array can be one of the three following types:
-	* 1) A text string 
-	* 2) An array containing text strings or further arrays containing text strings (i.e. an array tree of strings)
-	* 3) An object pair (active record and CDbCriteria) which will be queried internally in this class-object
-	*    The CDbCriteria object shoulkd contain the desired search criteria and column names which contin the texts 
-	*    to be accumulated.
-	*/
-	public $sourceList = array();
-	public $sourceFileList = array();	
+	 * @var a one-dimensional array containing references to text sources
+	 * Each array element ultimately refers to a text string whose tokens will be parsed into 
+	 * the frequency list
+	 * The elements of this array can be one of the three following types:
+	 * 1) A text string (in this case it is the only source)
+	 * 2) An array containing text strings or arrays containing text strings (i.e. an array tree of strings)
+	 * 3) An object pair (active record and CDbCriteria) which will be queried within class/object
+	 *  	The CDbCriteria object should contain the desired search criteria and column names
+	 *		which contain the texts to be accumulated.
+	 */
+	public $sourceList = mixed: string or array()
+
 	/**
-	* @var string delimiter used for converting(with the explode function) strings to tags 
-	*/
+	 * @var a one dimensional array containing a list of file names containing strings which will be parsed
+	 * into tokens. The full path name is required as paert of the file name. 
+	 */
+	public $sourceFileList = array()
+
+	/**
+	 * @var string delimiter used for converting (with the explode function) strings to tokens 
+	 */
 	public $explosionDelimiter = ' ';
-	 
+
 	/**
 	 * @var a one-dimensional array containing blacklist words
-	 * A blacklist is ulimately an array of tags which will be removed from the source texts
+	 * A blacklist is ulimately an array of tokens which will be removed from the source texts
 	 * The blacklist references must be an array of individual words:
 	 * The array depth can be arbitrarily deep as it is processed internally 
 	 * with array_walk_recursive to retrieve all values present.
-	 * 
-	 * Possible Use Cases: Blacklist files can be maintained for words that should 
-	 * be ignored (for example in English 'the', 'a', 'and' etc.), 
-	 * they can also be maintained for different languages, different technical fields etc. 
 	 */
 	public $blackList = array();
 	
@@ -217,7 +220,6 @@ class YiiWordFrequency extends CComponent
 	 * A reference to a text file containing a list of words:
 	 * The file must be located in the assets directory of this extension 
 	 * and the words in the file must be one per line 
-	 * @see $blackList for a description of blacklists
 	 * (several pre-defined lists are included, @see assets directory)
 	 */
 	public $blackListFile = array();
@@ -227,7 +229,6 @@ class YiiWordFrequency extends CComponent
 	 * An array of regular expressions. Words form the source texts which matched a regular expressions
 	 * will be removed. The array depth can be arbitrarily deep as it is processed internally 
 	 * with array_walk_recursive to retrieve all values present.
-	 * @see $blackList for a description of blacklists
 	 */
 	public $blackListRegularExpression = array();
 
@@ -236,14 +237,13 @@ class YiiWordFrequency extends CComponent
 	 * A reference to a text file containing a list of regular expression:
 	 * The file must be located in the assets directory of this extension 
 	 * and the regularexpressions in the file must be one per line 
-	 * @see $blackList for a description of blacklists
-	 * (several pre-defined lists are included, @see assets directory)
 	 */
 	public $blackListRegularExpressionFile = array();
 
 	/**
 	* @var boolean whether or not the blacklist comparison should be case insensitive
-	* Only valid for $blackList. NOT valid for $blackListRegularExpression or $blackListRegularExpressionFile
+	* Only valid for $blacklist. 
+	* NOT valid for $blackListRegularExpression or $blackListRegularExpressionFile
 	*/
 	public $blackListCaseSensitive = false;
 	
@@ -251,7 +251,7 @@ class YiiWordFrequency extends CComponent
 	 * The $whiteList* parameters operate analagous to the $blackList* parameters
 	 * The difference is in the result. Whitelist values act as a positive filter. 
 	 * Only the values listed in the whitelist parameters will be counted in the frequency list
-	 * @see description of the $blackList parameters
+	 * For specification and usage @see description of the $blackList parameters
 	 */
 	public $whiteList = array();
 	public $whiteListFile = array();
@@ -260,14 +260,13 @@ class YiiWordFrequency extends CComponent
 	public $whiteListCaseSensitive = false;
 
 	/**
-	* @var array of key value search and replace strings. Useful for eliminating punction marks from text, for example
-	* The usage of setting the $substitutionList* parameters is analagous to $whiteList* and $blackList*. 
-	* One exception, however, is that tree array structures are not supported. The Arrays must be a one-dimensional
-	* Key=>value array. The Key is the text to be searched for (i.e matched against) and the value is the replacement text.
-	* 
-	* One major difference between the substitutioList* parameters and the others are that they must be PHP files, which
-	* return a key/value array.
-	*/
+	 * @var array of key value search and replace strings. Useful for eliminating punction marks from text, for example
+	 * The usage of setting the $substitutionList* parameters is analagous to $whiteList* and $blackList*. 
+	 * One exception, however, is that tree array structures are not supported. The Arrays must be a one-dimensional
+	 * Key=>value array. The Key is the text to be searched for (i.e matched against) and the value is the replacement text.
+	 * Another major difference between the substitutioList* parameters and the others are that they must be PHP files, which
+	 * return a key/value array.
+	 */
 	public $substitutionList = array();
 	public $substitutionListFile = array();
 	public $substitutionListRegularExpression = array();
@@ -275,13 +274,19 @@ class YiiWordFrequency extends CComponent
 	public $substitutionListCaseSensitive = false;
 	
 	/**
-	* @var integer, negative = force lowercase, 0 = no changes made to case, positive = force uppercase
-	*/
+	 * @var integer, negative = force lowercase, 0 = no changes made to case, positive = force uppercase
+	 * This change of case is in reference to the final list. If a change of case is required it takes 
+	 * as the tokens are being accumuulated from the string sources.
+	 */
 	public $forceCase = 0; 
 	
 	/**
-	* @var boolean, true remove numeric strings (such as dates, times etc., only makes sense if punctuation is removed first)
-	*/
+	 * @var boolean, true = remove numeric strings 
+	 * The removal of numeric tokens applies only to integer values
+	 * It is performed automatically when the final token list is generated @see method generateList()
+	 * Potential use for removing dates and times. This, however, is only possible
+	 * If punctuation marks (e.g. "/" or ":") are removed prior to to the list generation
+	 */
 	public $removeNumeric = false; 
 	
 	/**
@@ -291,32 +296,47 @@ class YiiWordFrequency extends CComponent
 	 * @see $sortByFrequency has precedence over $sortByToken
 	 */
 	public $sortByToken = 0; 
+	
 	/**
 	 * Sort token List by frequency
 	 * @var integer, -1 = descending, 0 = natural unchanged order, +1 = ascending
-	 * $sortByFrequency has precedence over $sortByToken. It it is specified (i.e. value <> 0) then 
-	 * the $sortByToken is used only as a second order sort specification to sort by token when
+	 * $sortByFrequency has precedence over $sortByToken. If it is specified (i.e. value <> 0) then 
+	 * the $sortByToken value is used only as a second order sort specification to sort by token when
 	 * the frequencies are equal.
 	 */
 	public $sortByFrequency = 0; 
 	 
 	/**
-	* @var string the URL for this extensions assets directory
-	*/
+	 * @var string, the URL for the extensions assets directory
+	 * This is the directory in which blacklist files, whitelist files and sustitutionlist files are located
+	 */
 	public $extensionAssetUrl;
 	
 	/**
-	* @var boolean flag indication if the filters or methods have been called
-	*/
+	 * @var boolean flag indication if the filters or methods have been called
+	 * These flags are used iunternally to indicate whether or not the filtering options
+	 * Have been called.
+	 */
 	protected $accumulateVisited = false;
 	protected $blackListVisited = false;
 	protected $whiteListVisited = false;
 	protected $substitutionListVisited = false;
 	
+	/**
+	 * Class constructor
+	 * Sets the default calue of the assests directory.
+	 * This can be altered by direct assignment of the class parameters.
+	 */
 	public function __construct() {
 		$this->extensionAssetUrl = __DIR__ . DIRECTORY_SEPARATOR . 'assets';
 	}
 	
+	/**
+	 * Add a source to the current list of text string sources
+	 * @param $newSource mixed (string or array) is added to the input sources
+	 * This is optional as the sources can be directly added to the property $sourceList
+	 * 
+	 */
 	public function addSource($newSource) {
 		if (is_string($newSource) or is_array($newSource)) {
 			$this->sourceList[] = $newSource;
@@ -328,6 +348,11 @@ class YiiWordFrequency extends CComponent
 	}
 	
 	/**
+	 * Add a source to the current list of Active Record sources
+	 * @param object $model an active record model
+	 * @param object $criteria a CDbCriteria object which specifies query criteria (records and columns) 
+	 * pertinant to the actrive record. The columns and rows determine the source of strings which
+	 * will be parsed into tokens for the generated list
 	 * @todo more stringent tests, need to test for exact class types
 	 */
 	public function addDbSource($model, $criteria) {
@@ -340,9 +365,10 @@ class YiiWordFrequency extends CComponent
 	}
 	
 	/**
-	 * Adds words from $inputString into the class list of words/tags ($this->internalTagList) which is an array of individual words
-	 * this is the only class method where elements are added to $this->internalTagList
-	 * @param string $inputString list of words to be added as tags to $this->internalTagList
+	 * Adds tokens from $inputString into the list of tokens ($this->internalTagList) which 
+	 * is an array of individual tokens this is the only class method where elements are 
+	 * added to $this->internalTagList
+	 * @param string $inputString containing tokens to be added to $this->internalTagList
 	 */
 	protected function addStringToTagList($inputString) {
 		$wordsToAdd = explode($this->explosionDelimiter, $inputString); //explode string to an array
@@ -363,17 +389,17 @@ class YiiWordFrequency extends CComponent
 	}
 
 	/**
-	* Adds words from an array contining strings into the class list of words/tags ($this->internalTagList) which is an array of individual words
+	* Adds tokenss from an array contining strings into the list of tokens ($this->internalTagList) which is an array of individual tokens
 	* the array can have several levels and any tree structure. It is processed recursively. The strings contained
 	* in the array must not be individual words they can be strings with several words.
-	* @param array $arraySource list of words to be added as tags to $this->internalTagList
+	* @param array $arraySource list of words to be added as tokens to $this->internalTagList
 	*/
 	protected function accumulateFromArrays($arraySource) {
 		array_walk_recursive($arraySource, array($this, "addStringToTagList"));
 	}
 
 	/**
-	 * Adds words from a list of Active Records into the class list of words/tags ($this->internalTagList) which is an array of individual words
+	 * Adds words from a list of Active Records into the list of tokens ($this->internalTagList) which is an array of individual tokens
 	 * $this->activeRecordSourceList is an array contining a list of arrays which have the two keys:
 	 * model: is the active record (e.g. the value returned by the findAll() function) 
 	 * attribute: another array with a list of attribute names from the active record, whose text values should be imported
@@ -400,7 +426,7 @@ class YiiWordFrequency extends CComponent
 	}
 	
 	/**
-	 * Calls all functions to import word/tags from all import sources: string, array list, avtive records
+	 * Calls all functions to import word/tokens from all import sources: string, array list, avtive records
 	 * The three types of sources are distinguished by thier types: string, array, object
 	 */
 	public function accumulateSources() {
@@ -743,9 +769,9 @@ class YiiWordFrequency extends CComponent
 	}
 
 	/**
-	 * Performs all functions necessary to import tags from all import sources as well as perform
+	 * Performs all functions necessary to import tokens from all import sources as well as perform
 	 * all subsequent modifications
-	 * The result is that the array $this->frequencyList is created which is then used to display the tag cloud
+	 * The result is that the array $this->frequencyList is created which is then used to display the token cloud
 	 * @see http://stackoverflow.com/questions/2282013/php-array-multiple-sort-by-value-then-by-key 
 	 */
 	public function generateList($locale = false) {
@@ -753,9 +779,9 @@ class YiiWordFrequency extends CComponent
 		if ($this->removeNumeric) {
 			$this->internalTagList = $this->removeNumericItems($this->internalTagList);
 		}
-		//count the occurances of each tag and create a unique array with count total
+		//count the occurances of each token and create a unique array with count total
 		//$wordCount = array_count_values($this->internalTagList);
-		$this->tagFrequencyList = array_count_values($this->internalTagList);
+		$this->tokenFrequencyList = array_count_values($this->internalTagList);
 
 		// sort the result (if necessary)
 		if ($locale) {
@@ -764,24 +790,24 @@ class YiiWordFrequency extends CComponent
 		
 		if ($this->sortByFrequency == 0) {
 			if ($this->sortByToken > 0) {
-				ksort($this->tagFrequencyList, SORT_LOCALE_STRING);
+				ksort($this->tokenFrequencyList, SORT_LOCALE_STRING);
 			} elseif ($this->sortByToken < 0) {
-				krsort($this->tagFrequencyList, SORT_LOCALE_STRING);
+				krsort($this->tokenFrequencyList, SORT_LOCALE_STRING);
 			}
 		} else {
 			if ($this->sortByFrequency > 0) {
 				array_multisort(
-					array_values($this->tagFrequencyList), SORT_ASC, 
-					array_keys($this->tagFrequencyList), ($this->sortByToken<0 ? SORT_DESC : SORT_ASC), SORT_LOCALE_STRING,
-					$this->tagFrequencyList);
+					array_values($this->tokenFrequencyList), SORT_ASC, 
+					array_keys($this->tokenFrequencyList), ($this->sortByToken<0 ? SORT_DESC : SORT_ASC), SORT_LOCALE_STRING,
+					$this->tokenFrequencyList);
 			} elseif ($this->sortByFrequency < 0) {
 				array_multisort(
-					array_values($this->tagFrequencyList), SORT_DESC, 
-					array_keys($this->tagFrequencyList), ($this->sortByToken<0 ? SORT_DESC : SORT_ASC), SORT_LOCALE_STRING, 
-					$this->tagFrequencyList);
+					array_values($this->tokenFrequencyList), SORT_DESC, 
+					array_keys($this->tokenFrequencyList), ($this->sortByToken<0 ? SORT_DESC : SORT_ASC), SORT_LOCALE_STRING, 
+					$this->tokenFrequencyList);
 			}
 		}
 		
-		return $this->tagFrequencyList;
+		return $this->tokenFrequencyList;
 	}
 }
