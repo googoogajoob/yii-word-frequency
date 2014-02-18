@@ -10,12 +10,13 @@ Place the contents of the 'yii-word-frequency' extension (extracted from the zip
 or obtained via Github) into the extensions folder extensions/yii-word-frequency 
 
 Add "ext.yii-word-frequency" to the import array in config/main.php
-	// autoloading model and component classes
+'''
 	'import'=>array(
 		...
 		'ext.yii-word-frequency.*', 
 		...
 	),
+'''
 
 ##Usage
 ###A minimalistic example
@@ -92,12 +93,12 @@ basic manipulation of the data.
 
 ###Possible Sources
 The basic source for tokens is the text string. The text strings, however, can be retrieved from 
-multiple types. Except for a simple text string all of them can be specified multiple times. 
-	- The simplest form is a single text string.
-	- An array of string values
-	- An array of arrays which resolves to strings at the end node
-	- An active record object accompanied by a query defing which records and columns to use 
-	- A text file
+multiple types. Except for a simple text string all of them can be specified multiple times.
+*The simplest form is a single text string.
+*An array of string values
+*An array of arrays which resolves to strings at the end node
+*An active record object accompanied by a query defing which records and columns to use 
+*A text file
 
 Individual tokens are extracted from the sources based on a delimeter which defaults to
 space but can be otherwise specified.
@@ -134,10 +135,10 @@ in the regular expression itself.
 
 ###Additional Options
 The resulting token list can be modified in four possible ways
-- Numerical tokens can be removed, integer values only (including 0)
-- The case of the tokens can be forced to upper or lowercase
- - The list can be sorted by token (and a sort_locale can be specified)
- - The list can be sorted by the token frequency
+*Numerical tokens can be removed, integer values only (including 0)
+*The case of the tokens can be forced to upper or lowercase
+*The list can be sorted by token (and a sort_locale can be specified)
+*The list can be sorted by the token frequency
  
 ###Existing Data
 The assets directory of this extension is where this class looks for blacklists, whitelists andypotter
@@ -147,21 +148,21 @@ JavaScript files among others. The assets for YiiWordFrequency (this class) are 
 be accesible by the browser. They are only needed by PHP on the server and thus can exist outside
 of the webroot directory.
 Delivered with this extension are four blacklists and a substitution list. 
-blackList_alphabet.txt 	- single charcters of the english alphabet
-blackList_de.txt			- German words that should not be included in a tag cloud
-blackList_en.txt			- English words that should not be included in a tag cloud
-blackList_umlaut.txt		- German special characters, extension to blacklist_alphabet for german texts
-punctuation_en.php		- substitution list for elimination punctuation characters
+*blackList_alphabet.txt 	- single charcters of the english alphabet
+*blackList_de.txt			- German words that should not be included in a tag cloud
+*blackList_en.txt			- English words that should not be included in a tag cloud
+*blackList_umlaut.txt		- German special characters, extension to blacklist_alphabet for german texts
+*punctuation_en.php		- substitution list for elimination punctuation characters
  
 Additional examples of blacklists, whitelists and subsitutionlists can be fgound in the tests/fixtures
 directory of this extension.
  
 ###Usage
 There are four operation phases for using objects of this class
-1) Initialization - create objext and specify all sources, filtering lists and additional options
-2) Accumulate the token for the specified sources
-3) Perform filtering options
-4) Generate the token frequency list 
+1. Initialization - create objext and specify all sources, filtering lists and additional options
+2. Accumulate the token for the specified sources
+3. Perform filtering options
+4. Generate the token frequency list 
 
 After creation and speicification the accumulation must take place. Generation of the list must also 
 be done last. The filtering options offer fexibility. They can be formed in differing orders. 
