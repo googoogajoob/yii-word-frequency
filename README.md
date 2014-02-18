@@ -10,6 +10,8 @@ Place the contents of the 'yii-word-frequency' extension (extracted from the zip
 or obtained via Github) into the extensions folder extensions/yii-word-frequency 
 
 Add **ext.yii-word-frequency** to the import array in **config/main.php**
+	
+	
 	// preloading 'log' component
 	'preload'=>array('log'),
 
