@@ -169,7 +169,7 @@ There are four operational phases when using objects of this class
 * Generate the token frequency list 
 
 After creation and speicification the accumulation must take place. Generation of the list must also 
-be done last. The filtering options offer fexibility. They can be formed in differing orders. 
+be done last. The filtering options offer flexibility. They can be formed in differing orders. 
 Blacklists, for example, may have a different effect on the list of tokens, if a substitution
 was performed beforehand. Dates of the format 12/07/2014 could be eliminated by replacing the slash 
 with empty text and then removing umeric items. Or, optionally, they could be removed with regular
