@@ -180,10 +180,10 @@ class YiiWordFrequency extends CComponent
 	/**
 	 * @var NON-unique array of individual tokens that have been accumulated from all sources
 	 */
-	protected $internalTagList = array();
+	protected $tokenList = array();
 
 	/**
-	 * @var a one-dimensional array containing references to text sources
+	 * @var a one-dimensional array containing references to text sources or a string
 	 * Each array element ultimately refers to a text string whose tokens will be parsed into 
 	 * the frequency list
 	 * The elements of this array can be one of the three following types:
@@ -193,13 +193,13 @@ class YiiWordFrequency extends CComponent
 	 *  	The CDbCriteria object should contain the desired search criteria and column names
 	 *		which contain the texts to be accumulated.
 	 */
-	public $sourceList = mixed: string or array()
+	public $sourceList = array();
 
 	/**
 	 * @var a one dimensional array containing a list of file names containing strings which will be parsed
 	 * into tokens. The full path name is required as paert of the file name. 
 	 */
-	public $sourceFileList = array()
+	public $sourceFileList = array();
 
 	/**
 	 * @var string delimiter used for converting (with the explode function) strings to tokens 
@@ -242,7 +242,7 @@ class YiiWordFrequency extends CComponent
 
 	/**
 	* @var boolean whether or not the blacklist comparison should be case insensitive
-	* Only valid for $blacklist. 
+	* Only valid for $blackList. 
 	* NOT valid for $blackListRegularExpression or $blackListRegularExpressionFile
 	*/
 	public $blackListCaseSensitive = false;
@@ -335,15 +335,14 @@ class YiiWordFrequency extends CComponent
 	 * Add a source to the current list of text string sources
 	 * @param $newSource mixed (string or array) is added to the input sources
 	 * This is optional as the sources can be directly added to the property $sourceList
-	 * 
+	 * @return $this YiiWordFrequency object which allows method chaining
 	 */
 	public function addSource($newSource) {
 		if (is_string($newSource) or is_array($newSource)) {
 			$this->sourceList[] = $newSource;
 		} else {
 			Yii::log(Yii::t('yii','Invalid source type in "{method}". String or array of strings expected.', array('{method}'=>__METHOD__)),CLogger::LEVEL_WARNING);
-		}
-		
+		}		
 		return $this;
 	}
 	
@@ -354,6 +353,7 @@ class YiiWordFrequency extends CComponent
 	 * pertinant to the actrive record. The columns and rows determine the source of strings which
 	 * will be parsed into tokens for the generated list
 	 * @todo more stringent tests, need to test for exact class types
+	 * @return $this YiiWordFrequency object which allows method chaining
 	 */
 	public function addDbSource($model, $criteria) {
 		if (is_object($model) and is_object($criteria)) {
@@ -365,10 +365,10 @@ class YiiWordFrequency extends CComponent
 	}
 	
 	/**
-	 * Adds tokens from $inputString into the list of tokens ($this->internalTagList) which 
+	 * Adds tokens from $inputString into the list of tokens ($this->tokenList) which 
 	 * is an array of individual tokens this is the only class method where elements are 
-	 * added to $this->internalTagList
-	 * @param string $inputString containing tokens to be added to $this->internalTagList
+	 * added to $this->tokenList
+	 * @param string $inputString contains tokens to be added to $this->tokenList
 	 */
 	protected function addStringToTagList($inputString) {
 		$wordsToAdd = explode($this->explosionDelimiter, $inputString); //explode string to an array
@@ -385,24 +385,24 @@ class YiiWordFrequency extends CComponent
 				$trimmedWordList[] = $tempv;
 		  }
 		}			
-		$this->internalTagList = array_merge($this->internalTagList, $trimmedWordList); //accumulate to internal list
+		$this->tokenList = array_merge($this->tokenList, $trimmedWordList); //accumulate to internal list
 	}
 
 	/**
-	* Adds tokenss from an array contining strings into the list of tokens ($this->internalTagList) which is an array of individual tokens
+	* Adds tokens from an array contining strings into the list of tokens ($this->tokenList) which is an array of individual tokens
 	* the array can have several levels and any tree structure. It is processed recursively. The strings contained
 	* in the array must not be individual words they can be strings with several words.
-	* @param array $arraySource list of words to be added as tokens to $this->internalTagList
+	* @param array $arraySource list of text strings to be parsed for tokens into $this->tokenList
 	*/
 	protected function accumulateFromArrays($arraySource) {
 		array_walk_recursive($arraySource, array($this, "addStringToTagList"));
 	}
 
 	/**
-	 * Adds words from a list of Active Records into the list of tokens ($this->internalTagList) which is an array of individual tokens
-	 * $this->activeRecordSourceList is an array contining a list of arrays which have the two keys:
-	 * model: is the active record (e.g. the value returned by the findAll() function) 
-	 * attribute: another array with a list of attribute names from the active record, whose text values should be imported
+	 * Parse strings from specific columns from a set of Active Records into the list of tokens ($this->tokenList)
+	 * The desired columns and rows must be specified via $arCriteria
+	 * @param CActiveRecord Child Object $arModel
+	 * @param CDbCritera Object $arCriteria
 	 */
 	protected function accumulateFromActiveRecords($arModel, $arCriteria) {
 		$rows = $arModel->findAll($arCriteria);
@@ -414,6 +414,9 @@ class YiiWordFrequency extends CComponent
 		}
 	}
 	
+	/**
+	 * Parse the strings from the files in the array $this->sourceFileList for tokens
+	 */
 	protected function accumulateFromStringFile() {
 		foreach ($this->sourceFileList as $v) {
 			if (file_exists($v)) {
@@ -426,8 +429,9 @@ class YiiWordFrequency extends CComponent
 	}
 	
 	/**
-	 * Calls all functions to import word/tokens from all import sources: string, array list, avtive records
-	 * The three types of sources are distinguished by thier types: string, array, object
+	 * Parse all strings from all specified sources and populate $this->tokenList with 
+	 * tokens. This is the public method which must be called for anything useful to happen.
+	 * @return $this YiiWordFrequency object which allows method chaining
 	 */
 	public function accumulateSources() {
 		$this->accumulateVisited = true;
@@ -453,7 +457,7 @@ class YiiWordFrequency extends CComponent
 	}
 
 	/**
-	 * removes items from $this->internalTagList which are in the $blackList references
+	 * removes all tokens from $this->tokenList which are in $this->blackList references
 	 */
 	protected function blackListFilter() {
 		// merge all blacklist values into one array
@@ -461,7 +465,10 @@ class YiiWordFrequency extends CComponent
 		array_walk_recursive($this->blackList, create_function('$val, $key, $obj', 'array_push($obj, $val);'), &$compositeBlackList); 
 		$this->blackListRemovalUtility($compositeBlackList);
 	}
-	
+
+	/**
+	 * removes all tokens from $this->tokenList which are in $this->blackListFile references
+	 */
 	protected function blackListFileFilter() {
 		$compositeBlackList = array();
 		//read blacklist terms from blackList asset files
@@ -478,20 +485,21 @@ class YiiWordFrequency extends CComponent
 	}
 	
 	/**
-	 *  Utility function for removing blacklisted items from a blacklist array
+	 * Utility function for removing blacklisted tokens from a $this->tokenList
+	 * @param array $blackList an array of tokens which should be removed from $this->tokenList
 	 */
 	protected function blackListRemovalUtility($blackList) {
 		//remove blacklisted words
-		$inputList = $this->internalTagList;
+		$inputList = $this->tokenList;
 		if ($this->blackListCaseSensitive) {
-			$this->internalTagList = array_udiff($inputList, $blackList, 'strcmp');
+			$this->tokenList = array_udiff($inputList, $blackList, 'strcmp');
 		} else {
-			$this->internalTagList = array_udiff($inputList, $blackList, 'strcasecmp');
+			$this->tokenList = array_udiff($inputList, $blackList, 'strcasecmp');
 		}
 	}
 	
 	/**
-	 * removes items from $this->internalTagList which are in the $blackListRegularExpression references
+	 * removes tokens from $this->tokenList which are in the $blackListRegularExpression references
 	 */
 	protected function blackListRegularExpressionFilter() {
 		// merge all blacklist values into one array
@@ -501,7 +509,7 @@ class YiiWordFrequency extends CComponent
 	}
 
 	/**
-	 * removes items from $this->internalTagList which are in the $blacklistRegularExpressionFile references
+	 * removes tokenss from $this->tokenList which are in the $blacklistRegularExpressionFile references
 	 */
 	protected function blackListRegularExpressionFileFilter() {
 		$compositeBlackList = array();
@@ -519,16 +527,23 @@ class YiiWordFrequency extends CComponent
 	}
 
 	/**
-	 *  Utility function for removing matches to regular expressions
+	 * Utility function for removing matches to regular expressions
+	 * @param array $regularExpressionList an array of regular expression which 
+	 * are compared to the tokens in $this->tokenList and removed if there is a match
 	 */
 	protected function blackListRegularExpressionRemovalUtility($regularExpressionList) {
 		//remove blacklisted regular expression
 		foreach ($regularExpressionList as $v) {
-			$inputList = $this->internalTagList;
-			$this->internalTagList = preg_grep ($v, $inputList, PREG_GREP_INVERT);
+			$inputList = $this->tokenList;
+			$this->tokenList = preg_grep ($v, $inputList, PREG_GREP_INVERT);
 		}
 	}
 
+	/**
+	 * Remove all tokens from $this->tokenList which match any of the specified blacklist 
+	 * conditions. This is the public method which must be called when blacklists are used.
+	 * @return $this YiiWordFrequency object which allows method chaining
+	 */
 	public function runBlackListFilter() {
 		$this->blackListVisited = true;
 		if (count($this->blackList)) $this->blackListFilter();
@@ -539,8 +554,12 @@ class YiiWordFrequency extends CComponent
 		return $this;
 	}
 	
+	/* ####################################################################### */
+	/* ### The Whitelist methods operate analgous to the blacklist methods ### */
+	/* ####################################################################### */
+	
 	/**
-	 * removes items from $this->internalTagList which are in the $whiteList references
+	 * removes all tokens from $this->tokenList which are not in $this->whiteList references
 	 */
 	protected function whiteListFilter() {
 		// merge all whitelist values into one array
@@ -549,6 +568,9 @@ class YiiWordFrequency extends CComponent
 		$this->whiteListRemovalUtility($compositeWhiteList);
 	}
 	
+	/**
+	 * removes all tokens from $this->tokenList which are not in $this->whiteListFile references
+	 */
 	protected function whiteListFileFilter() {
 		$compositeWhiteList = array();
 		//read whitelist terms from whitelist asset files
@@ -565,20 +587,21 @@ class YiiWordFrequency extends CComponent
 	}
 	
 	/**
-	 *  Utility function for removing whitelisted items from a whitelist array
+	 * Utility function for removing non whitelisted items from $this->tokenList
+	 * @param array $whiteList an array of tokens which are allowed in $this->tokenList
 	 */
 	protected function whiteListRemovalUtility($whiteList) {
 		//remove whitelisted words
-		$inputList = $this->internalTagList;
+		$inputList = $this->tokenList;
 		if ($this->whiteListCaseSensitive) {
-			$this->internalTagList = array_uintersect($inputList, $whiteList, 'strcmp');
+			$this->tokenList = array_uintersect($inputList, $whiteList, 'strcmp');
 		} else {
-			$this->internalTagList = array_uintersect($inputList, $whiteList, 'strcasecmp');
+			$this->tokenList = array_uintersect($inputList, $whiteList, 'strcasecmp');
 		}
 	}
 	
 	/**
-	 * removes items from $this->internalTagList which are in the $whiteListRegularExpression references
+	 * removes tokens from $this->tokenList which are not in the $whiteListRegularExpression references
 	 */
 	protected function whiteListRegularExpressionFilter() {
 		// merge all whitelist values into one array
@@ -588,7 +611,7 @@ class YiiWordFrequency extends CComponent
 	}
 
 	/**
-	 * removes items from $this->internalTagList which are in the $whiteListRegularExpressionFile references
+	 * removes tokens from $this->tokenList which are in the $whiteListRegularExpressionFile references
 	 */
 	protected function whiteListRegularExpressionFileFilter() {
 		$compositeWhiteList = array();
@@ -606,22 +629,29 @@ class YiiWordFrequency extends CComponent
 	}
 
 	/**
-	 *  Utility function for removing matches to regular expressions
+	 * Utility function for removing non matches to regular expressions
+	 * @param array $regularExpressionList an array of regular expression which 
+	 * are compared to the tokens in $this->tokenList and removed if there is no match
 	 */
 	protected function whiteListRegularExpressionRemovalUtility($regularExpressionList) {
-		// Whenever an array element is include it must be removed from further whitelist 
+		// Whenever an array element is included it must be removed from further whitelist 
 		// Tests, otherwise elements may be counted multiple times.
-		// Thus inputList starts with the full selection of words and is succesively reduced
-		$inputList = $this->internalTagList; //initialize, list to compare against
+		// Thus, inputList starts with the full selection of words and is succesively reduced
+		$inputList = $this->tokenList; //initialize, list to compare against
 		$partialList = array(); //initialize, list of found items
 		foreach ($regularExpressionList as $v) {
 			$matchingElements = preg_grep ($v, $inputList); // Find items in list which match the regular expression
 			$partialList = array_merge($partialList, $matchingElements); //Add matching items to the growing list of found items
 			$inputList = array_diff($inputList, $matchingElements); //remove matching elements from list to be searched
 		}
-		$this->internalTagList = $partialList;
+		$this->tokenList = $partialList;
 	}
 
+	/**
+	 * Remove all tokens from $this->tokenList which do not match any of the specified whitelist 
+	 * conditions. This is the public method which must be called when whitelists are used.
+	 * @return $this YiiWordFrequency object which allows method chaining
+	 */
 	public function runWhiteListFilter() {
 		$this->whiteListVisited = true;
 		if (count($this->whiteList)) $this->whiteListFilter();
@@ -632,13 +662,20 @@ class YiiWordFrequency extends CComponent
 		return $this;
 	}
 	
+	/* ############################################################################## */
+	/* ### The substitutionlist methods operate analgous to the blacklist methods ### */
+	/* ############################################################################## */
+
 	/**
-	 * removes items from $this->internalTagList which are in the $substitutionlist references
+	 * substitutes strings in $this->tokenList which are specified in the $substitutionList array
 	 */
 	protected function substitutionListFilter() {
 		$this->substitutionListRemovalUtility($this->substitutionList);
 	}
 	
+	/**
+	 * substitutes strings in $this->tokenList which are specified by the arrays defined in the $substitutionListFileFilter files	 
+	 */
 	protected function substitutionListFileFilter() {
 		$compositeSubstitutionList = array();
 		//read substitutionlist terms from substitutionlist asset files
@@ -657,31 +694,34 @@ class YiiWordFrequency extends CComponent
 	}
 	
 	/**
-	 *  Utility function for removing substitutionlisted items from a substitutionList array
+	 * Utility function for replacing strings in $this->tokenList with substitutionlisted values
+	 * @param array $substitutionList a key=>value array of strings and their replacement values
 	 */
 	protected function substitutionListRemovalUtility($substitutionList) {
 		if ($this->substitutionListCaseSensitive) {
-			$this->internalTagList = str_ireplace(
+			$this->tokenList = str_ireplace(
 				array_keys($substitutionList), 
 				array_values($substitutionList), 
-				$this->internalTagList);
+				$this->tokenList);
 		} else {
-			$this->internalTagList = str_replace(
+			$this->tokenList = str_replace(
 				array_keys($substitutionList), 
 				array_values($substitutionList), 
-				$this->internalTagList);
+				$this->tokenList);
 		}
 	}
-	
+
 	/**
-	 * removes items from $this->internalTagList which are in the $substitutionlistRegularExpression references
+	 * replace strings in $this->tokenList which are specified 
+	 * in the $substitutionlistRegularExpression array
 	 */
 	protected function substitutionListRegularExpressionFilter() {
 		$this->substitutionListRegularExpressionRemovalUtility($this->substitutionListRegularExpression);
 	}
 
 	/**
-	 * removes items from $this->internalTagList which are in the $substitutionListRegularExpressionFile references
+	 * replace strings in $this->tokenList which are specified in the arrays defined 
+	 * in the $substitutionlistRegularExpression files
 	 */
 	protected function substitutionListRegularExpressionFileFilter() {
 		$compositeSubstitutionList = array();
@@ -701,15 +741,22 @@ class YiiWordFrequency extends CComponent
 	}
 
 	/**
-	 *  Utility function for removing matches to regular expressions
+	 * Utility function for replacing matches regular expressions based on key=>value pairs
+	 * @param array $regularExpressionList a key=>value array of search and replace strings the search
+	 * string is a regular expression
 	 */
 	protected function substitutionListRegularExpressionRemovalUtility($regularExpressionList) {
-		$this->internalTagList = preg_replace(
+		$this->tokenList = preg_replace(
 			array_keys($regularExpressionList), 
 			array_values($regularExpressionList), 
-			$this->internalTagList);
+			$this->tokenList);
 	}
 
+	/**
+	 * Replace all strings $this->tokenList which match any of the specified substituionlist 
+	 * conditions. This is the public method which must be called when substitutionlists are used.
+	 * @return $this YiiWordFrequency object which allows method chaining
+	 */
 	public function runSubstitutionListFilter() {
 		$this->substitutionListVisited = true;
 		if (count($this->substitutionList)) $this->substitutionListFilter();
@@ -721,15 +768,21 @@ class YiiWordFrequency extends CComponent
 	}
 
 	/**
-	 * removes all items from $inputList which are purely numeric
-	 * the comparison is case insensitive
-	 * @param array $inputList, list of words/tabs which are to compared and removed if found to be numeric
+	 * removes all items in $inputList which are purely integer numeric including 0
+	 * @param array $inputList list of tokens which are to be removed if found to be numeric
 	 * @return array $inputList stripped of items which are numeric 
 	 */
 	protected function removeNumericItems($inputList) {
 		return array_filter($inputList, function($arg) { return !(intval($arg) > 0 or $arg == '0'); });
 	}
 
+	/*
+	 * Issue warnings when perceived anomalies occur. This is ccalled from the generateList() method.
+	 * - sources not accumulated
+	 * - no source definitions
+	 * - no resulting tokens
+	 * - filtering options (blacklist, whitelict or substitutionlist) were defined but not used 
+	 */
 	protected function issueUsageWarnings() {
 		if (!$this->accumulateVisited) {
 			Yii::log(Yii::t('yii','Sources have not been accumulated in "{class}".', array('{class}'=>__CLASS__)),CLogger::LEVEL_WARNING);			
@@ -739,8 +792,8 @@ class YiiWordFrequency extends CComponent
 			Yii::log(Yii::t('yii','No sources defined in "{class}".', array('{class}'=>__CLASS__)),CLogger::LEVEL_WARNING);			
 		}
 	
-		if (count($this->internalTagList) == 0) {
-			Yii::log(Yii::t('yii','Sources have produced no results "{class}".', array('{class}'=>__CLASS__)),CLogger::LEVEL_WARNING);			
+		if (count($this->tokenList) == 0) {
+			Yii::log(Yii::t('yii','Sources have produced no tokens "{class}".', array('{class}'=>__CLASS__)),CLogger::LEVEL_WARNING);			
 		}
 		
 		$countCheck =  count($this->blackList) +
@@ -769,19 +822,21 @@ class YiiWordFrequency extends CComponent
 	}
 
 	/**
-	 * Performs all functions necessary to import tokens from all import sources as well as perform
-	 * all subsequent modifications
-	 * The result is that the array $this->frequencyList is created which is then used to display the token cloud
-	 * @see http://stackoverflow.com/questions/2282013/php-array-multiple-sort-by-value-then-by-key 
+	 * Generates $this->tokenFrequencyList which is a key=>value array. The keys are the tokens and the
+	 * value is the count of occurences in the source texts. This method assumes that 
+	 * the sources and filtering options have been called prior to this.
+	 * @see http://stackoverflow.com/questions/2282013/php-array-multiple-sort-by-value-then-by-key for
+	 * a discussion of array_multisort
+	 * @return $this->tokenFrequencyList, this can also be retrieved via the property value
 	 */
 	public function generateList($locale = false) {
 		$this->issueUsageWarnings();
 		if ($this->removeNumeric) {
-			$this->internalTagList = $this->removeNumericItems($this->internalTagList);
+			$this->tokenList = $this->removeNumericItems($this->tokenList);
 		}
 		//count the occurances of each token and create a unique array with count total
-		//$wordCount = array_count_values($this->internalTagList);
-		$this->tokenFrequencyList = array_count_values($this->internalTagList);
+		//$wordCount = array_count_values($this->tokenList);
+		$this->tokenFrequencyList = array_count_values($this->tokenList);
 
 		// sort the result (if necessary)
 		if ($locale) {

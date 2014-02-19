@@ -530,7 +530,7 @@ class YiiWordFrequencyTest extends CDbTestCase {
 		$this->ywf->accumulateSources();
 		$this->ywf->generateList();
 		$this->logger->flush(true);
-		$this->assertTrue(DebugLogRoute::hasMessage('*Sources have produced no results*', 'warning'));
+		$this->assertTrue(DebugLogRoute::hasMessage('*Sources have produced no tokens*', 'warning'));
 	}
 
 	public function testNonUsageWarning4() {
