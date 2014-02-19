@@ -101,7 +101,7 @@ multiple types. Except for a simple text string all of them can be specified mul
 * The simplest form is a single text string.
 * An array of string values
 * An array of arrays which resolves to strings at the end node
-* An active record object accompanied by a query defing which records and columns to use 
+* An active record object accompanied by a query defining which records and columns to use 
 * A text file
 
 Individual tokens are extracted from the sources based on a delimeter which defaults to
