@@ -1,6 +1,6 @@
 #yii-word-frequency
 
-A class for accumulating tokens from various text sources, filtering them, and counting thier frequency.
+A class for accumulating tokens from various text sources, filtering them, and counting their frequency.
 This is useful for generating Tag Clouds, determining the top keywords in a set of texts as well as
 determining the frequency of specified tokens. It is a nice little tool which brings many array processing 
 operations into one convenient class.
