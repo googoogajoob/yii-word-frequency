@@ -10,8 +10,7 @@ Place the contents of the 'yii-word-frequency' extension (extracted from the zip
 or obtained via Github) into the extensions folder extensions/yii-word-frequency 
 
 Add **ext.yii-word-frequency** to the import array in **config/main.php**
-	
-	
+~~~	
 	// preloading 'log' component
 	'preload'=>array('log'),
 
@@ -21,13 +20,16 @@ Add **ext.yii-word-frequency** to the import array in **config/main.php**
 		'application.components.*',
 		'ext.yii-word-frequency.*', 
 	),
+~~~
 
 ##Usage
 ###A minimalistic example
-	$ywf = Yii::createComponent(array('class' => 'YiiWordFrequency'));
-	$ywf->sourceList = 'This is a test string. This is another test string. Test strings are fun.';
-	$ywf->accumulateSources();
-	$frequencyList = $ywf->generateList();
+~~~
+$ywf = Yii::createComponent(array('class' => 'YiiWordFrequency'));
+$ywf->sourceList = 'This is a test string. This is another test string. Test strings are fun.';
+$ywf->accumulateSources();
+$frequencyList = $ywf->generateList();
+~~~
 
 ###An example using Active Records 
 (the frequency list can be obtained from the return value of generateList() as above 
@@ -43,7 +45,7 @@ Add **ext.yii-word-frequency** to the import array in **config/main.php**
 	$ywf->generateList();
 	$frequencyList = $ywf->tagFrequencyList;
 
-###An example usinge multiple sources
+###An example using multiple sources
 
 	$ywf = Yii::createComponent(array('class' => 'YiiWordFrequency'));
 	$model = new Testdata; // Active Record Model
@@ -92,7 +94,7 @@ could be displayed with the yiitagcloud widget.
 @link http://www.yiiframework.com/extension/yiitagcloud
 
 This class can take input from several types of text sources and provides various means 
-of filtering thier content (i.e inclusion or exclusion in the final list) as well as some 
+of filtering their content (i.e inclusion or exclusion in the final list) as well as some 
 basic manipulation of the data.
 
 ###Possible Sources
@@ -104,33 +106,33 @@ multiple types. Except for a simple text string all of them can be specified mul
 * An active record object accompanied by a query defining which records and columns to use 
 * A text file
 
-Individual tokens are extracted from the sources based on a delimeter which defaults to
+Individual tokens are extracted from the sources based on a delimiter which defaults to
 space but can be otherwise specified.
 
 ###Filtering Options - Blacklist
-A blacklist is an array of tokens which act as a negative filter. Tokens which have been extraced
+A blacklist is an array of tokens which act as a negative filter. Tokens which have been extracted
 from source texts are checked against the blacklists. If there is a match the token will be removed.
 This is useful for eliminating sets of words which should not be counted (such as articles 
-and conjunctions in english texts. e.g. a, an, the, this, and, or).
+and conjunctions in English texts. e.g. a, an, the, this, and, or).
 Blacklists can be defined in the form of an array, from a file and as a regular expression. 
 In addition the blacklist matching comparison can be case insensitive.
 
 ###Filtering Options - Whitelist
 A whitelist is an array of tokens which act as a positive filter. Tokens which have been extracted
 from source texts are checked against the whitelists. Only if there is a match will the the 
-token be counted. A potnetial use for this is to count the frequency of a specific set of words
+token be counted. A potential use for this is to count the frequency of a specific set of words
 in a set of texts. 
-Whitelist usage is analagous to blacklists. They can be defined in the form of an array, from 
+Whitelist usage is analogous to blacklists. They can be defined in the form of an array, from 
 a file and as a regular expression. In addition whitelist matching comparison can be case insensitive.
 
 ###Filtering Options - Substitution
 A substitutionlist is a list of tokens and associated replacement values. Tokens which have been 
-extracted from source texts can be maodified according to multiple substituion lists. The lists are 
-specified as key=>value pairs, wher the key is the token to be searched for and the value is the
-replacement value. The specification of whitelists is analgouse to blacklists and whitelists with
-one major difference. A substituion list in a file must be a PHP snippet which returns a key->value 
-array. Substitution lists can include regular expressions and has an opton for case insensitivity.
-One possible use for substition is to filter out punction symbols by replacing them with an empty string.
+extracted from source texts can be modified according to multiple substitution lists. The lists are 
+specified as key=>value pairs, where the key is the token to be searched for and the value is the
+replacement value. The specification of whitelists is analogous to blacklists and whitelists with
+one major difference. A substitution list in a file must be a PHP snippet which returns a key->value 
+array. Substitution lists can include regular expressions and has an option for case insensitivity.
+One possible use for substation is to filter out punctuation symbols by replacing them with an empty string.
 Another possible use would be to remove or replace URLs in a text. 
 
 In all three filtering options (blacklist, whitelist and substitutionlist) the case insensitive option 
@@ -145,35 +147,35 @@ The resulting token list can be modified in four possible ways
 * The list can be sorted by the token frequency
  
 ###Existing Data
-The assets directory of this extension is where this class looks for blacklists, whitelists andypotter
+The assets directory of this extension is where this class looks for blacklists, whitelists and
 substitution lists. This can be specified by altering the value of the property $extensionAssetUrl. 
 This assets directory should not be confused with the Yii assets directory which contain CSS or 
 JavaScript files among others. The assets for YiiWordFrequency (this class) are not required to 
-be accesible by the browser. They are only needed by PHP on the server and thus can exist outside
+be accessible by the browser. They are only needed by PHP on the server and thus can exist outside
 of the webroot directory.
 Delivered with this extension are four blacklists and a substitution list. 
-* blackList_alphabet.txt 	- single charcters of the english alphabet
+* blackList_alphabet.txt 	- single characters of the English alphabet
 * blackList_de.txt			- German words that should not be included in a tag cloud
 * blackList_en.txt			- English words that should not be included in a tag cloud
-* blackList_umlaut.txt		- German special characters, extension to blacklist_alphabet for german texts
+* blackList_umlaut.txt		- German special characters, extension to blacklist_alphabet for German texts
 * punctuation_en.php		- substitution list for elimination punctuation characters
  
-Additional examples of blacklists, whitelists and subsitutionlists can be fgound in the tests/fixtures
+Additional examples of blacklists, whitelists and subsitutionlists can be found in the tests/fixtures
 directory of this extension.
  
 ###Usage
 There are four operational phases when using objects of this class
-* Initialization - create objext and specify all sources, filtering lists and additional options
+* Initialization - create object and specify all sources, filtering lists and additional options
 * Accumulate the token for the specified sources
 * Perform filtering options
 * Generate the token frequency list 
 
-After creation and speicification the accumulation must take place. Generation of the list must also 
+After creation and specification the accumulation must take place. Generation of the list must also 
 be done last. The filtering options offer flexibility. They can be formed in differing orders. 
 Blacklists, for example, may have a different effect on the list of tokens, if a substitution
 was performed beforehand. Dates of the format 12/07/2014 could be eliminated by replacing the slash 
-with empty text and then removing umeric items. Or, optionally, they could be removed with regular
-expression. In order to accomodate all the possibilities and flexibility for the filtering options.
+with empty text and then removing numeric items. Or, optionally, they could be removed with regular
+expression. In order to accommodate all the possibilities and flexibility for the filtering options.
 The filtering methods must be explicitly called for the object. If filtering options have been defined
 but the filter is not been called a warning will be given during the generation phase.
 Also the filtering methods are chainable so that all the necessary calls to the object can 
