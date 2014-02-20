@@ -93,8 +93,7 @@ multiple text sources and generating from them an array which has a unique list 
 as well as the number of times each token occurs in the original source texts.
 
 The initial motivation for this class was to generating data for a TagCloud which 
-could be displayed with the yiitagcloud widget.
-@link http://www.yiiframework.com/extension/yiitagcloud
+could be displayed with the yiitagcloud widget http://www.yiiframework.com/extension/yiitagcloud
 
 This class can take input from several types of text sources and provides various means 
 of filtering their content (i.e inclusion or exclusion in the final list) as well as some 
@@ -166,7 +165,7 @@ Delivered with this extension are four blacklists and a substitution list.
 Additional examples of blacklists, whitelists and subsitutionlists can be found in the tests/fixtures
 directory of this extension.
  
-###Usage
+###More Usage
 There are four operational phases when using objects of this class
 * Initialization - create object and specify all sources, filtering lists and additional options
 * Accumulate the token for the specified sources
