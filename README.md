@@ -1,9 +1,12 @@
 #yii-word-frequency
 
-A class for accumulating tokens from various text sources, filtering them, and counting their frequency.
-This is useful for generating Tag Clouds, determining the top keywords in a set of texts as well as
-determining the frequency of specified tokens. It is a nice little tool which brings many array processing 
-operations into one convenient class.
+A class for accumulating tokens from various text sources, filtering them, and counting their frequency. 
+It is intended for the Yii 1.X CMS
+
+##Potential Usage
+* Generating Tag Clouds
+* Determining the top keywords in a set of texts (e.g. Most often mentioned keywords in a set of posts or comments)
+* Determining the frequency of a specified set of tokens (e.g. A sports blog displays which players from a specific team appear in a post)
 
 ##Installation
 Place the contents of the 'yii-word-frequency' extension (extracted from the zip file 

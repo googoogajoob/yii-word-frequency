@@ -11,7 +11,7 @@
  * @link http://www.yiiframework.com/extension/yiitagcloud
  *
  * This class can take input from several types of text sources and provides various means 
- * of filtering thier content (i.e inclusion or exclusion in the final list) as well as some 
+ * of filtering their content (i.e inclusion or exclusion in the final list) as well as some 
  * basic manipulation of the data.
  *
  * Possible Sources
@@ -21,18 +21,18 @@
  * 	- The simplest form is a single text string.
  * 	- An array of string values
  * 	- An array of arrays which resolves to strings at the end node
- * 	- An active record object accompanied by a query defing which records and columns to use 
+ * 	- An active record object accompanied by a query defining which records and columns to use 
  * 	- A text file
  * 
- * Individual tokens are extracted from the sources based on a delimeter which defaults to
+ * Individual tokens are extracted from the sources based on a delimiter which defaults to
  * space but can be otherwise specified.
  * 
  * Filtering Options - Blacklist
  * -----------------------------
- * A blacklist is an array of tokens which act as a negative filter. Tokens which have been extraced
+ * A blacklist is an array of tokens which act as a negative filter. Tokens which have been extracted
  * from source texts are checked against the blacklists. If there is a match the token will be removed.
  * This is useful for eliminating sets of words which should not be counted (such as articles 
- * and conjunctions in english texts. e.g. a, an, the, this, and, or).
+ * and conjunctions in English texts. e.g. a, an, the, this, and, or).
  * Blacklists can be defined in the form of an array, from a file and as a regular expression. 
  * In addition the blacklist matching comparison can be case insensitive.
  * 
@@ -40,20 +40,20 @@
  * -----------------------------
  * A whitelist is an array of tokens which act as a positive filter. Tokens which have been extracted
  * from source texts are checked against the whitelists. Only if there is a match will the the 
- * token be counted. A potnetial use for this is to count the frequency of a specific set of words
+ * token be counted. A potential use for this is to count the frequency of a specific set of words
  * in a set of texts. 
- * Whitelist usage is analagous to blacklists. They can be defined in the form of an array, from 
+ * Whitelist usage is analogous to blacklists. They can be defined in the form of an array, from 
  * a file and as a regular expression. In addition whitelist matching comparison can be case insensitive.
  * 
  * Filtering Options - Substitution
  * --------------------------------
  * A substitutionlist is a list of tokens and associated replacement values. Tokens which have been 
- * extracted from source texts can be maodified according to multiple substituion lists. The lists are 
- * specified as key=>value pairs, wher the key is the token to be searched for and the value is the
- * replacement value. The specification of whitelists is analgouse to blacklists and whitelists with
- * one major difference. A substituion list in a file must be a PHP snippet which returns a key->value 
- * array. Substitution lists can include regular expressions and has an opton for case insensitivity.
- * One possible use for substition is to filter out punction symbols by replacing them with an empty string.
+ * extracted from source texts can be modified according to multiple substitution lists. The lists are 
+ * specified as key=>value pairs, whee the key is the token to be searched for and the value is the
+ * replacement value. The specification of whitelists is analogous to blacklists and whitelists with
+ * one major difference. A substitution list in a file must be a PHP snippet which returns a key->value 
+ * array. Substitution lists can include regular expressions and has an option for case insensitivity.
+ * One possible use for substation is to filter out punctuation symbols by replacing them with an empty string.
  * Another possible use would be to remove or replace URLs in a text. 
  * 
  * In all three filtering options (blacklist, whitelist and substitutionlist) the case insensitive option 
@@ -70,36 +70,36 @@
  * 
  * Existing Data
  * -------------
- * The assets directory of this extension is where this class looks for blacklists, whitelists andypotter
+ * The assets directory of this extension is where this class looks for blacklists, whitelists and
  * substitution lists. This can be specified by altering the value of the property $extensionAssetUrl. 
  * This assets directory should not be confused with the Yii assets directory which contain CSS or 
  * JavaScript files among others. The assets for YiiWordFrequency (this class) are not required to 
- * be accesible by the browser. They are only needed by PHP on the server and thus can exist outside
+ * be accessible by the browser. They are only needed by PHP on the server and thus can exist outside
  * of the webroot directory.
  * Delivered with this extension are four blacklists and a substitution list. 
- * blackList_alphabet.txt 	- single charcters of the english alphabet
+ * blackList_alphabet.txt 	- single characters of the English alphabet
  * blackList_de.txt			- German words that should not be included in a tag cloud
  * blackList_en.txt			- English words that should not be included in a tag cloud
- * blackList_umlaut.txt		- German special characters, extension to blacklist_alphabet for german texts
+ * blackList_umlaut.txt		- German special characters, extension to blacklist_alphabet for German texts
  * punctuation_en.php		- substitution list for elimination punctuation characters
  * 
- * Additional examples of blacklists, whitelists and subsitutionlists can be fgound in the tests/fixtures
+ * Additional examples of blacklists, whitelists and subsitutionlists can be found in the tests/fixtures
  * directory of this extension.
  * 
  * Usage
  * -----
  * There are four operational phases when using objects of this class
- * 1) Initialization - create objext and specify all sources, filtering lists and additional options
+ * 1) Initialization - create object and specify all sources, filtering lists and additional options
  * 2) Accumulate the token for the specified sources
  * 3) Perform filtering options
  * 4) Generate the token frequency list 
  *
- * After creation and speicification the accumulation must take place. Generation of the list must also 
- * be done last. The filtering options offer fexibility. They can be formed in differing orders. 
+ * After creation and specification the accumulation must take place. Generation of the list must also 
+ * be done last. The filtering options offer flexibility. They can be formed in differing orders. 
  * Blacklists, for example, may have a different effect on the list of tokens, if a substitution
  * was performed beforehand. Dates of the format 12/07/2014 could be eliminated by replacing the slash 
- * with empty text and then removing umeric items. Or, optionally, they could be removed with regular
- * expression. In order to accomodate all the possibilities and flexibility for the filtering options.
+ * with empty text and then removing numeric items. Or, optionally, they could be removed with regular
+ * expression. In order to accommodate all the possibilities and flexibility for the filtering options.
  * The filtering methods must be explicitly called for the object. If filtering options have been defined
  * but the filter is not been called a warning will be given during the generation phase.
  * Also the filtering methods are chainable so that all the necessary calls to the object can 
@@ -129,7 +129,7 @@
  * $ywf->generateList();
  * $frequencyList = $ywf->tagFrequencyList;
  * 
- * An example usinge multiple sources
+ * An example using multiple sources
  * 
  * $ywf = Yii::createComponent(array('class' => 'YiiWordFrequency'));
  * $model = new Testdata; // Active Record Model
@@ -172,7 +172,7 @@
 class YiiWordFrequency extends CComponent
 {
 	/**
-	 * @var unique array of tokens and thier frequency count as key=>value pair. "token" => FrequencyCount
+	 * @var unique array of tokens and their frequency count as key=>value pair. "token" => FrequencyCount
 	 * The goal of this class is to create this list
 	 */
 	public $tokenFrequencyList = array();
@@ -197,7 +197,7 @@ class YiiWordFrequency extends CComponent
 
 	/**
 	 * @var a one dimensional array containing a list of file names containing strings which will be parsed
-	 * into tokens. The full path name is required as paert of the file name. 
+	 * into tokens. The full path name is required as part of the file name. 
 	 */
 	public $sourceFileList = array();
 
@@ -208,7 +208,7 @@ class YiiWordFrequency extends CComponent
 
 	/**
 	 * @var a one-dimensional array containing blacklist words
-	 * A blacklist is ulimately an array of tokens which will be removed from the source texts
+	 * A blacklist is ultimately an array of tokens which will be removed from the source texts
 	 * The blacklist references must be an array of individual words:
 	 * The array depth can be arbitrarily deep as it is processed internally 
 	 * with array_walk_recursive to retrieve all values present.
@@ -248,7 +248,7 @@ class YiiWordFrequency extends CComponent
 	public $blackListCaseSensitive = false;
 	
 	/**
-	 * The $whiteList* parameters operate analagous to the $blackList* parameters
+	 * The $whiteList* parameters operate analogous to the $blackList* parameters
 	 * The difference is in the result. Whitelist values act as a positive filter. 
 	 * Only the values listed in the whitelist parameters will be counted in the frequency list
 	 * For specification and usage @see description of the $blackList parameters
@@ -260,8 +260,8 @@ class YiiWordFrequency extends CComponent
 	public $whiteListCaseSensitive = false;
 
 	/**
-	 * @var array of key value search and replace strings. Useful for eliminating punction marks from text, for example
-	 * The usage of setting the $substitutionList* parameters is analagous to $whiteList* and $blackList*. 
+	 * @var array of key value search and replace strings. Useful for eliminating punctuation marks from text, for example
+	 * The usage of setting the $substitutionList* parameters is analogous to $whiteList* and $blackList*. 
 	 * One exception, however, is that tree array structures are not supported. The Arrays must be a one-dimensional
 	 * Key=>value array. The Key is the text to be searched for (i.e matched against) and the value is the replacement text.
 	 * Another major difference between the substitutioList* parameters and the others are that they must be PHP files, which
@@ -276,7 +276,7 @@ class YiiWordFrequency extends CComponent
 	/**
 	 * @var integer, negative = force lowercase, 0 = no changes made to case, positive = force uppercase
 	 * This change of case is in reference to the final list. If a change of case is required it takes 
-	 * as the tokens are being accumuulated from the string sources.
+	 * as the tokens are being accumulated from the string sources.
 	 */
 	public $forceCase = 0; 
 	
@@ -314,7 +314,7 @@ class YiiWordFrequency extends CComponent
 	
 	/**
 	 * @var boolean flag indication if the filters or methods have been called
-	 * These flags are used iunternally to indicate whether or not the filtering options
+	 * These flags are used internally to indicate whether or not the filtering options
 	 * Have been called.
 	 */
 	protected $accumulateVisited = false;
@@ -324,7 +324,7 @@ class YiiWordFrequency extends CComponent
 	
 	/**
 	 * Class constructor
-	 * Sets the default calue of the assests directory.
+	 * Sets the default value of the assets directory.
 	 * This can be altered by direct assignment of the class parameters.
 	 */
 	public function __construct() {
@@ -350,7 +350,7 @@ class YiiWordFrequency extends CComponent
 	 * Add a source to the current list of Active Record sources
 	 * @param object $model an active record model
 	 * @param object $criteria a CDbCriteria object which specifies query criteria (records and columns) 
-	 * pertinant to the actrive record. The columns and rows determine the source of strings which
+	 * pertinent to the active record. The columns and rows determine the source of strings which
 	 * will be parsed into tokens for the generated list
 	 * @todo more stringent tests, need to test for exact class types
 	 * @return $this YiiWordFrequency object which allows method chaining
@@ -359,7 +359,7 @@ class YiiWordFrequency extends CComponent
 		if (is_object($model) and is_object($criteria)) {
 			$this->sourceList[] = array($model, $criteria);
 		} else {
-			Yii::log(Yii::t('yii','Invaled source type in "{method}". Active Record Model and CDbCriteria objects expected.', array('{method}'=>__METHOD__)),CLogger::LEVEL_WARNING);			
+			Yii::log(Yii::t('yii','Invalid source type in "{method}". Active Record Model and CDbCriteria objects expected.', array('{method}'=>__METHOD__)),CLogger::LEVEL_WARNING);			
 		}
 		return $this;
 	}
@@ -389,7 +389,7 @@ class YiiWordFrequency extends CComponent
 	}
 
 	/**
-	* Adds tokens from an array contining strings into the list of tokens ($this->tokenList) which is an array of individual tokens
+	* Adds tokens from an array containing strings into the list of tokens ($this->tokenList) which is an array of individual tokens
 	* the array can have several levels and any tree structure. It is processed recursively. The strings contained
 	* in the array must not be individual words they can be strings with several words.
 	* @param array $arraySource list of text strings to be parsed for tokens into $this->tokenList
@@ -509,7 +509,7 @@ class YiiWordFrequency extends CComponent
 	}
 
 	/**
-	 * removes tokenss from $this->tokenList which are in the $blacklistRegularExpressionFile references
+	 * removes tokens from $this->tokenList which are in the $blacklistRegularExpressionFile references
 	 */
 	protected function blackListRegularExpressionFileFilter() {
 		$compositeBlackList = array();
@@ -555,7 +555,7 @@ class YiiWordFrequency extends CComponent
 	}
 	
 	/* ####################################################################### */
-	/* ### The Whitelist methods operate analgous to the blacklist methods ### */
+	/* ### The Whitelist methods operate analogous to the blacklist methods ### */
 	/* ####################################################################### */
 	
 	/**
@@ -636,7 +636,7 @@ class YiiWordFrequency extends CComponent
 	protected function whiteListRegularExpressionRemovalUtility($regularExpressionList) {
 		// Whenever an array element is included it must be removed from further whitelist 
 		// Tests, otherwise elements may be counted multiple times.
-		// Thus, inputList starts with the full selection of words and is succesively reduced
+		// Thus, inputList starts with the full selection of words and is successively reduced
 		$inputList = $this->tokenList; //initialize, list to compare against
 		$partialList = array(); //initialize, list of found items
 		foreach ($regularExpressionList as $v) {
@@ -663,7 +663,7 @@ class YiiWordFrequency extends CComponent
 	}
 	
 	/* ############################################################################## */
-	/* ### The substitutionlist methods operate analgous to the blacklist methods ### */
+	/* ### The substitutionlist methods operate analogous to the blacklist methods ### */
 	/* ############################################################################## */
 
 	/**
@@ -777,11 +777,11 @@ class YiiWordFrequency extends CComponent
 	}
 
 	/*
-	 * Issue warnings when perceived anomalies occur. This is ccalled from the generateList() method.
+	 * Issue warnings when perceived anomalies occur. This is called from the generateList() method.
 	 * - sources not accumulated
 	 * - no source definitions
 	 * - no resulting tokens
-	 * - filtering options (blacklist, whitelict or substitutionlist) were defined but not used 
+	 * - filtering options (blacklist, whitelist or substitutionlist) were defined but not used 
 	 */
 	protected function issueUsageWarnings() {
 		if (!$this->accumulateVisited) {
@@ -823,7 +823,7 @@ class YiiWordFrequency extends CComponent
 
 	/**
 	 * Generates $this->tokenFrequencyList which is a key=>value array. The keys are the tokens and the
-	 * value is the count of occurences in the source texts. This method assumes that 
+	 * value is the count of occurrences in the source texts. This method assumes that 
 	 * the sources and filtering options have been called prior to this.
 	 * @see http://stackoverflow.com/questions/2282013/php-array-multiple-sort-by-value-then-by-key for
 	 * a discussion of array_multisort
@@ -834,7 +834,7 @@ class YiiWordFrequency extends CComponent
 		if ($this->removeNumeric) {
 			$this->tokenList = $this->removeNumericItems($this->tokenList);
 		}
-		//count the occurances of each token and create a unique array with count total
+		//count the occurrences of each token and create a unique array with count total
 		//$wordCount = array_count_values($this->tokenList);
 		$this->tokenFrequencyList = array_count_values($this->tokenList);
 
