@@ -462,7 +462,10 @@ class YiiWordFrequency extends CComponent
 	protected function blackListFilter() {
 		// merge all blacklist values into one array
 		$compositeBlackList = array(); 
-		array_walk_recursive($this->blackList, create_function('$val, $key, $obj', 'array_push($obj, $val);'), &$compositeBlackList); 
+		$pFunc = function($val, $key) use (&$compositeBlackList) {
+				array_push($compositeBlackList, $val);
+			};
+		array_walk_recursive($this->blackList, $pFunc); 
 		$this->blackListRemovalUtility($compositeBlackList);
 	}
 
@@ -504,7 +507,10 @@ class YiiWordFrequency extends CComponent
 	protected function blackListRegularExpressionFilter() {
 		// merge all blacklist values into one array
 		$compositeBlackList = array(); 
-		array_walk_recursive($this->blackListRegularExpression, create_function('$val, $key, $obj', 'array_push($obj, $val);'), &$compositeBlackList); 
+		$pFunc = function($val, $key) use (&$compositeBlackList) {
+				array_push($compositeBlackList, $val);
+			};
+		array_walk_recursive($this->blackListRegularExpression, $pFunc); 
 		$this->blackListRegularExpressionRemovalUtility($compositeBlackList);
 	}
 
@@ -564,7 +570,10 @@ class YiiWordFrequency extends CComponent
 	protected function whiteListFilter() {
 		// merge all whitelist values into one array
 		$compositeWhiteList = array(); 
-		array_walk_recursive($this->whiteList, create_function('$val, $key, $obj', 'array_push($obj, $val);'), &$compositeWhiteList); 
+		$pFunc = function($val, $key) use (&$compositeWhiteList) {
+				array_push($compositeWhiteList, $val);
+			};
+		array_walk_recursive($this->whiteList, $pFunc); 
 		$this->whiteListRemovalUtility($compositeWhiteList);
 	}
 	
@@ -606,7 +615,10 @@ class YiiWordFrequency extends CComponent
 	protected function whiteListRegularExpressionFilter() {
 		// merge all whitelist values into one array
 		$compositeWhiteList = array(); 
-		array_walk_recursive($this->whiteListRegularExpression, create_function('$val, $key, $obj', 'array_push($obj, $val);'), &$compositeWhiteList); 
+		$pFunc = function($val, $key) use (&$compositeWhiteList) {
+				array_push($compositeWhiteList, $val);
+			};
+		array_walk_recursive($this->whiteListRegularExpression, $pFunc); 
 		$this->whiteListRegularExpressionRemovalUtility($compositeWhiteList, true);
 	}
 
